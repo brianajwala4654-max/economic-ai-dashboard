@@ -11,12 +11,15 @@ import {
 } from "recharts";
 import { getInflationData, getGDPData, getExchangeRate, getNews } from "./api";
 
+const CLAUDE_API_KEY = import.meta.env.VITE_CLAUDE_API_KEY;
+
 export default function App() {
   const [inflationData, setInflationData] = useState([]);
   const [exchangeRate, setExchangeRate] = useState(null);
   const [news, setNews] = useState([]);
   const [report, setReport] = useState("");
   const [loading, setLoading] = useState(true);
+  const [reportLoading, setReportLoading] = useState(false);
 
   useEffect(() => {
     async function fetchData() {
@@ -48,15 +51,50 @@ export default function App() {
       ? parseFloat(inflationData[inflationData.length - 1].value).toFixed(1)
       : "...";
 
-  function generateReport() {
-    setReport(`
-Inflation (CPI) is currently at ${latestInflation}, based on real FRED data.
-Exchange Rate: 1 USD = ${exchangeRate?.KES?.toFixed(2)} KES.
-Economic momentum remains positive, but rising prices indicate increasing inflationary pressure.
-GDP growth remains healthy, suggesting continued economic expansion.
-Exchange-rate fluctuations and global energy prices remain key risks.
-Forecast: Inflation is likely to remain elevated over the next quarter unless monetary policy tightens.
-    `);
+  async function generateReport() {
+    setReportLoading(true);
+    setReport("");
+    try {
+      const response = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": CLAUDE_API_KEY,
+          "anthropic-version": "2023-06-01",
+          "anthropic-dangerous-direct-browser-access": "true",
+        },
+        body: JSON.stringify({
+          model: "claude-haiku-4-5-20251001",
+          max_tokens: 1024,
+          messages: [
+            {
+              role: "user",
+              content: `You are an expert economist analyzing real-time Kenya economic data. Write a professional economic intelligence report based on this live data:
+
+- Latest CPI (Inflation Index): ${latestInflation}
+- USD to KES Exchange Rate: ${exchangeRate?.KES?.toFixed(2)}
+- USD to UGX Exchange Rate: ${exchangeRate?.UGX?.toFixed(0)}
+- Unemployment Rate: 7.1%
+
+Write a clear, insightful 3-paragraph report covering:
+1. Current economic situation and what these numbers mean
+2. Key risks and opportunities for Kenya's economy
+3. Short-term outlook and recommendations
+
+Use professional economic language suitable for investors, researchers, and policymakers.`,
+            },
+          ],
+        }),
+      });
+
+      const data = await response.json();
+      setReport(data.content[0].text);
+    } catch (error) {
+      setReport("Error generating report. Please try again.");
+      console.error(error);
+    } finally {
+      setReportLoading(false);
+    }
   }
 
   return (
@@ -147,11 +185,16 @@ Forecast: Inflation is likely to remain elevated over the next quarter unless mo
             {/* AI REPORT */}
             <div style={{ backgroundColor: "white", padding: "30px", borderRadius: "15px", marginTop: "30px" }}>
               <h2>AI Economic Analysis</h2>
-              <button onClick={generateReport} style={{ backgroundColor: "#2563eb", color: "white", border: "none", padding: "12px 20px", borderRadius: "10px", cursor: "pointer", marginTop: "10px" }}>
-                Generate AI Report
+              <p style={{ color: "#6b7280", fontSize: "14px" }}>Powered by Claude AI — analyzing live economic data</p>
+              <button
+                onClick={generateReport}
+                disabled={reportLoading}
+                style={{ backgroundColor: reportLoading ? "#93c5fd" : "#2563eb", color: "white", border: "none", padding: "12px 20px", borderRadius: "10px", cursor: reportLoading ? "not-allowed" : "pointer", marginTop: "10px" }}
+              >
+                {reportLoading ? "Generating Report..." : "Generate AI Report"}
               </button>
               {report && (
-                <div style={{ marginTop: "20px", backgroundColor: "#f9fafb", padding: "20px", borderRadius: "10px", whiteSpace: "pre-line" }}>
+                <div style={{ marginTop: "20px", backgroundColor: "#f9fafb", padding: "20px", borderRadius: "10px", whiteSpace: "pre-line", lineHeight: "1.8" }}>
                   {report}
                 </div>
               )}
