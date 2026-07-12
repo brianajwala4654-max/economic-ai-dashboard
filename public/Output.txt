@@ -1,0 +1,531 @@
+
+  ___  ____  ____  ____  ____ ©
+ /__    /   ____/   /   ____/      17.0
+___/   /   /___/   /   /___/       MP—Parallel Edition
+
+ Statistics and Data Science       Copyright 1985-2021 StataCorp LLC
+                                   StataCorp
+                                   4905 Lakeway Drive
+                                   College Station, Texas 77845 USA
+                                   800-STATA-PC        https://www.stata.com
+                                   979-696-4600        stata@stata.com
+
+Stata license: Unlimited-user 64-core network perpetual
+Serial number: 18461036
+  Licensed to: TEAM BTCR
+               TEAM BTCR
+
+Notes:
+      1. Unicode is supported; see help unicode_advice.
+      2. More than 2 billion observations are allowed; see help obs_advice.
+      3. Maximum number of variables is set to 5,000; see help set_maxvar.
+
+. doedit "C:\Users\Admin\Downloads\Analysis.do" 
+
+. do "C:\Users\Admin\AppData\Local\Temp\STD8f0_000000.tmp"
+
+. clear all
+
+. macro drop _all
+
+. capture log close
+
+. 
+. * OUR WORKING DIRECTORY
+. cd "C:\Users\Admin\OneDrive\Desktop\Research"
+C:\Users\Admin\OneDrive\Desktop\Research
+
+. 
+. * IMPORTING THE DATASET
+. import excel "UPDATED VARIABLES DATA (1).xlsx", sheet("Sheet1") firstrow clear
+(5 vars, 14 obs)
+
+. 
+. * RENAMING VARIABLES FOR EASY USE
+. rename GDPGROWTHRATEDV GDPGR
+
+. rename INFLATIONRATE INF
+
+. rename CORRUPTIONLEVEL CORR
+
+. rename CREDITTOPRIVATESECTOR ACCR
+
+. 
+. * DESCRIBING THE DATA
+. describe
+
+Contains data
+ Observations:            14                  
+    Variables:             5                  
+-------------------------------------------------------------------------------------------------------------------------------------------------------
+Variable      Storage   Display    Value
+    name         type    format    label      Variable label
+-------------------------------------------------------------------------------------------------------------------------------------------------------
+YEAR            int     %10.0g                YEAR
+GDPGR           double  %10.0g                GDP GROWTH RATE(DV)
+INF             double  %10.0g                INFLATION RATE(%)
+CORR            byte    %10.0g                CORRUPTION LEVEL (%)
+ACCR            double  %10.0g                CREDIT TO PRIVATE SECTOR(% OF GDP)
+-------------------------------------------------------------------------------------------------------------------------------------------------------
+Sorted by: 
+     Note: Dataset has changed since last saved.
+
+. tsset YEAR
+
+Time variable: YEAR, 2010 to 2023
+        Delta: 1 unit
+
+. list
+
+     +----------------------------------+
+     | YEAR   GDPGR   INF   CORR   ACCR |
+     |----------------------------------|
+  1. | 2010     8.1     4     20     24 |
+  2. | 2011     5.1    14     18   27.4 |
+  3. | 2012     4.6   9.4     13   26.4 |
+  4. | 2013     3.8   5.7     15   28.3 |
+  5. | 2014       5   6.9     16   34.5 |
+     |----------------------------------|
+  6. | 2015       5   6.6     14   36.7 |
+  7. | 2016     4.2   6.3     17   35.6 |
+  8. | 2017     3.8     8     15   33.2 |
+  9. | 2018     5.6   4.7     20   31.2 |
+ 10. | 2019     5.1   5.2     24   30.8 |
+     |----------------------------------|
+ 11. | 2020      .3   5.4     21   32.1 |
+ 12. | 2021     7.6   6.1     26   31.1 |
+ 13. | 2022     4.9   7.7     24   31.3 |
+ 14. | 2023     5.7   7.7     24   31.8 |
+     +----------------------------------+
+
+. 
+. * SUMMARIZING
+. summarize GDPGR INF CORR ACCR
+
+    Variable |        Obs        Mean    Std. dev.       Min        Max
+-------------+---------------------------------------------------------
+       GDPGR |         14    4.914286    1.816953         .3        8.1
+         INF |         14    6.978571     2.48044          4         14
+        CORR |         14    19.07143    4.269107         13         26
+        ACCR |         14    31.02857      3.5428         24       36.7
+
+. summarize GDPGR INF CORR ACCR, detail
+
+                    GDP GROWTH RATE(DV) 
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%           .3             .3
+ 5%           .3            3.8
+10%          3.8            3.8       Obs                  14
+25%          4.2            4.2       Sum of wgt.          14
+
+50%            5                      Mean           4.914286
+                        Largest       Std. dev.      1.816953
+75%          5.6            5.6
+90%          7.6            5.7       Variance       3.301319
+95%          8.1            7.6       Skewness      -.6505471
+99%          8.1            8.1       Kurtosis        4.65418
+
+                      INFLATION RATE(%)
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%            4              4
+ 5%            4            4.7
+10%          4.7            5.2       Obs                  14
+25%          5.4            5.4       Sum of wgt.          14
+
+50%         6.45                      Mean           6.978571
+                        Largest       Std. dev.       2.48044
+75%          7.7            7.7
+90%          9.4              8       Variance       6.152582
+95%           14            9.4       Skewness       1.627925
+99%           14             14       Kurtosis        5.67217
+
+                    CORRUPTION LEVEL (%)
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%           13             13
+ 5%           13             14
+10%           14             15       Obs                  14
+25%           15             15       Sum of wgt.          14
+
+50%           19                      Mean           19.07143
+                        Largest       Std. dev.      4.269107
+75%           24             24
+90%           24             24       Variance       18.22527
+95%           26             24       Skewness       .1766985
+99%           26             26       Kurtosis       1.688061
+
+             CREDIT TO PRIVATE SECTOR(% OF GDP)
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%           24             24
+ 5%           24           26.4
+10%         26.4           27.4       Obs                  14
+25%         28.3           28.3       Sum of wgt.          14
+
+50%        31.25                      Mean           31.02857
+                        Largest       Std. dev.        3.5428
+75%         33.2           33.2
+90%         35.6           34.5       Variance       12.55143
+95%         36.7           35.6       Skewness      -.3280489
+99%         36.7           36.7       Kurtosis       2.507558
+
+. pwcorr GDPGR INF CORR ACCR
+
+             |    GDPGR      INF     CORR     ACCR
+-------------+------------------------------------
+       GDPGR |   1.0000 
+         INF |  -0.0790   1.0000 
+        CORR |   0.2934  -0.2417   1.0000 
+        ACCR |  -0.3292  -0.1449  -0.0734   1.0000 
+
+. 
+. 
+. * PART 2: UNIT ROOT TESTS
+. * Level form
+. dfuller GDPGR, lags(1)
+
+Augmented Dickey–Fuller test for unit root
+
+Variable: GDPGR                            Number of obs  = 12
+                                           Number of lags =  1
+
+H0: Random walk without drift, d = 0
+
+                                       Dickey–Fuller
+                   Test      -------- critical value ---------
+              statistic           1%           5%          10%
+--------------------------------------------------------------
+ Z(t)            -3.788       -3.750       -3.000       -2.630
+--------------------------------------------------------------
+MacKinnon approximate p-value for Z(t) = 0.0030.
+
+. dfuller INF, lags(1)
+
+Augmented Dickey–Fuller test for unit root
+
+Variable: INF                              Number of obs  = 12
+                                           Number of lags =  1
+
+H0: Random walk without drift, d = 0
+
+                                       Dickey–Fuller
+                   Test      -------- critical value ---------
+              statistic           1%           5%          10%
+--------------------------------------------------------------
+ Z(t)            -4.515       -3.750       -3.000       -2.630
+--------------------------------------------------------------
+MacKinnon approximate p-value for Z(t) = 0.0002.
+
+. dfuller CORR, lags(1)
+
+Augmented Dickey–Fuller test for unit root
+
+Variable: CORR                             Number of obs  = 12
+                                           Number of lags =  1
+
+H0: Random walk without drift, d = 0
+
+                                       Dickey–Fuller
+                   Test      -------- critical value ---------
+              statistic           1%           5%          10%
+--------------------------------------------------------------
+ Z(t)            -0.537       -3.750       -3.000       -2.630
+--------------------------------------------------------------
+MacKinnon approximate p-value for Z(t) = 0.8846.
+
+. dfuller ACCR, lags(1)
+
+Augmented Dickey–Fuller test for unit root
+
+Variable: ACCR                             Number of obs  = 12
+                                           Number of lags =  1
+
+H0: Random walk without drift, d = 0
+
+                                       Dickey–Fuller
+                   Test      -------- critical value ---------
+              statistic           1%           5%          10%
+--------------------------------------------------------------
+ Z(t)            -1.977       -3.750       -3.000       -2.630
+--------------------------------------------------------------
+MacKinnon approximate p-value for Z(t) = 0.2967.
+
+. 
+. * With trend
+. dfuller GDPGR, lags(1) trend
+
+Augmented Dickey–Fuller test for unit root
+
+Variable: GDPGR                            Number of obs  = 12
+                                           Number of lags =  1
+
+H0: Random walk with or without drift
+
+                                       Dickey–Fuller
+                   Test      -------- critical value ---------
+              statistic           1%           5%          10%
+--------------------------------------------------------------
+ Z(t)            -3.447       -4.380       -3.600       -3.240
+--------------------------------------------------------------
+MacKinnon approximate p-value for Z(t) = 0.0454.
+
+. dfuller INF, lags(1) trend
+
+Augmented Dickey–Fuller test for unit root
+
+Variable: INF                              Number of obs  = 12
+                                           Number of lags =  1
+
+H0: Random walk with or without drift
+
+                                       Dickey–Fuller
+                   Test      -------- critical value ---------
+              statistic           1%           5%          10%
+--------------------------------------------------------------
+ Z(t)            -3.069       -4.380       -3.600       -3.240
+--------------------------------------------------------------
+MacKinnon approximate p-value for Z(t) = 0.1137.
+
+. dfuller CORR, lags(1) trend
+
+Augmented Dickey–Fuller test for unit root
+
+Variable: CORR                             Number of obs  = 12
+                                           Number of lags =  1
+
+H0: Random walk with or without drift
+
+                                       Dickey–Fuller
+                   Test      -------- critical value ---------
+              statistic           1%           5%          10%
+--------------------------------------------------------------
+ Z(t)            -3.417       -4.380       -3.600       -3.240
+--------------------------------------------------------------
+MacKinnon approximate p-value for Z(t) = 0.0492.
+
+. dfuller ACCR, lags(1) trend
+
+Augmented Dickey–Fuller test for unit root
+
+Variable: ACCR                             Number of obs  = 12
+                                           Number of lags =  1
+
+H0: Random walk with or without drift
+
+                                       Dickey–Fuller
+                   Test      -------- critical value ---------
+              statistic           1%           5%          10%
+--------------------------------------------------------------
+ Z(t)            -1.803       -4.380       -3.600       -3.240
+--------------------------------------------------------------
+MacKinnon approximate p-value for Z(t) = 0.7033.
+
+. 
+. * First difference
+. dfuller D.GDPGR, lags(1)
+
+Augmented Dickey–Fuller test for unit root
+
+Variable: D.GDPGR                          Number of obs  = 11
+                                           Number of lags =  1
+
+H0: Random walk without drift, d = 0
+
+                                       Dickey–Fuller
+                   Test      -------- critical value ---------
+              statistic           1%           5%          10%
+--------------------------------------------------------------
+ Z(t)            -4.348       -3.750       -3.000       -2.630
+--------------------------------------------------------------
+MacKinnon approximate p-value for Z(t) = 0.0004.
+
+. dfuller D.INF, lags(1)
+
+Augmented Dickey–Fuller test for unit root
+
+Variable: D.INF                            Number of obs  = 11
+                                           Number of lags =  1
+
+H0: Random walk without drift, d = 0
+
+                                       Dickey–Fuller
+                   Test      -------- critical value ---------
+              statistic           1%           5%          10%
+--------------------------------------------------------------
+ Z(t)            -4.148       -3.750       -3.000       -2.630
+--------------------------------------------------------------
+MacKinnon approximate p-value for Z(t) = 0.0008.
+
+. dfuller D.CORR, lags(1)
+
+Augmented Dickey–Fuller test for unit root
+
+Variable: D.CORR                           Number of obs  = 11
+                                           Number of lags =  1
+
+H0: Random walk without drift, d = 0
+
+                                       Dickey–Fuller
+                   Test      -------- critical value ---------
+              statistic           1%           5%          10%
+--------------------------------------------------------------
+ Z(t)            -3.614       -3.750       -3.000       -2.630
+--------------------------------------------------------------
+MacKinnon approximate p-value for Z(t) = 0.0055.
+
+. dfuller D.ACCR, lags(1)
+
+Augmented Dickey–Fuller test for unit root
+
+Variable: D.ACCR                           Number of obs  = 11
+                                           Number of lags =  1
+
+H0: Random walk without drift, d = 0
+
+                                       Dickey–Fuller
+                   Test      -------- critical value ---------
+              statistic           1%           5%          10%
+--------------------------------------------------------------
+ Z(t)            -2.252       -3.750       -3.000       -2.630
+--------------------------------------------------------------
+MacKinnon approximate p-value for Z(t) = 0.1879.
+
+. 
+. 
+. * BASIC OLS REGRESSION 
+. regress GDPGR INF CORR ACCR
+
+      Source |       SS           df       MS      Number of obs   =        14
+-------------+----------------------------------   F(3, 10)        =      0.76
+       Model |  7.93774615         3  2.64591538   Prob > F        =    0.5435
+    Residual |  34.9793967        10  3.49793967   R-squared       =    0.1850
+-------------+----------------------------------   Adj R-squared   =   -0.0596
+       Total |  42.9171429        13  3.30131868   Root MSE        =    1.8703
+
+------------------------------------------------------------------------------
+       GDPGR | Coefficient  Std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+         INF |  -.0466939   .2186262    -0.21   0.835    -.5338235    .4404356
+        CORR |   .1083275   .1260259     0.86   0.410    -.1724756    .3891307
+        ACCR |  -.1639749   .1489295    -1.10   0.297    -.4958106    .1678608
+       _cons |    8.26209   6.038391     1.37   0.201    -5.192283    21.71646
+------------------------------------------------------------------------------
+
+. estimates store ols_model
+
+. 
+. * DIAGNOSTIC TESTS
+. vif
+
+    Variable |       VIF       1/VIF  
+-------------+----------------------
+         INF |      1.09    0.914971
+        CORR |      1.08    0.929556
+        ACCR |      1.03    0.966527
+-------------+----------------------
+    Mean VIF |      1.07
+
+. estat hettest
+
+Breusch–Pagan/Cook–Weisberg test for heteroskedasticity 
+Assumption: Normal error terms
+Variable: Fitted values of GDPGR
+
+H0: Constant variance
+
+    chi2(1) =   0.32
+Prob > chi2 = 0.5697
+
+. estat bgodfrey
+
+Breusch–Godfrey LM test for autocorrelation
+---------------------------------------------------------------------------
+    lags(p)  |          chi2               df                 Prob > chi2
+-------------+-------------------------------------------------------------
+       1     |          0.728               1                   0.3934
+---------------------------------------------------------------------------
+                        H0: no serial correlation
+
+. dwstat
+
+Durbin–Watson d-statistic(  4,    14) =  2.314131
+
+. 
+. 
+. * ARDL MODEL
+. * ssc install ardl
+. 
+. * ARDL with automatic lag selection
+. ardl GDPGR INF CORR ACCR, maxlags(2)
+
+ARDL(2,2,2,1) regression
+
+Sample:       2012 thru       2023                      Number of obs =     12
+                                                        F(10, 1)      =   3.41
+                                                        Prob > F      = 0.3998
+                                                        R-squared     = 0.9715
+                                                        Adj R-squared = 0.6869
+Log likelihood = -1.5166287                             Root MSE      = 0.9511
+
+------------------------------------------------------------------------------
+       GDPGR | Coefficient  Std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+       GDPGR |
+         L1. |  -1.499915   .6931508    -2.16   0.276    -10.30723    7.307401
+         L2. |  -.4028421    .216253    -1.86   0.314    -3.150597    2.344913
+             |
+         INF |
+         --. |   .3008514   .5033908     0.60   0.657    -6.095336    6.697038
+         L1. |   2.578071   1.182718     2.18   0.274    -12.44979    17.60593
+         L2. |   .8627792   .5506554     1.57   0.362    -6.133962     7.85952
+             |
+        CORR |
+         --. |   .9113902   .2261937     4.03   0.155    -1.962673    3.785454
+         L1. |   .7133814   .6908392     1.03   0.490    -8.064562    9.491325
+         L2. |  -.8267762   .4547105    -1.82   0.320    -6.604422    4.950869
+             |
+        ACCR |
+         --. |   1.033008   .4501977     2.29   0.262    -4.687296    6.753311
+         L1. |   .2324211   .2611304     0.89   0.537    -3.085555    3.550398
+             |
+       _cons |  -68.79357   33.64868    -2.04   0.290    -496.3406    358.7534
+------------------------------------------------------------------------------
+
+. 
+. * ARDL with specific lags
+. ardl GDPGR INF CORR ACCR, lags(1,0,0,0)
+
+ARDL(1,0,0,0) regression
+
+Sample:       2011 thru       2023                      Number of obs =     13
+                                                        F(4, 8)       =   1.15
+                                                        Prob > F      = 0.3992
+                                                        R-squared     = 0.3654
+                                                        Adj R-squared = 0.0481
+Log likelihood = -21.342742                             Root MSE      = 1.5929
+
+------------------------------------------------------------------------------
+       GDPGR | Coefficient  Std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+       GDPGR |
+         L1. |   -.499913   .2921172    -1.71   0.125    -1.173537    .1737105
+             |
+         INF |      .3677   .2536922     1.45   0.185    -.2173152    .9527152
+        CORR |   .1312497   .1083079     1.21   0.260    -.1185087     .381008
+        ACCR |   .0381657   .1721653     0.22   0.830    -.3588483    .4351796
+       _cons |   .7468576   7.109029     0.11   0.919    -15.64659    17.14031
+------------------------------------------------------------------------------
+
+. 
+. save "MSME_Analysis_Complete.dta", replace
+file MSME_Analysis_Complete.dta saved
+
+. export excel using "MSME_Results_Complete.xlsx", firstrow(variables) replace
+file MSME_Results_Complete.xlsx saved
+
+. 
+end of do-file
+
+. 

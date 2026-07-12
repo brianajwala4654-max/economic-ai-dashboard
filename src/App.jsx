@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { Helmet } from "react-helmet";
 import {
   LineChart,
   Line,
@@ -42,32 +43,33 @@ export default function App() {
     inflation: parseFloat(obs.value),
   }));
 
-  const latestInflation = inflationData.length > 0
-    ? parseFloat(inflationData[inflationData.length - 1].value).toFixed(1)
-    : "...";
+  const latestInflation =
+    inflationData.length > 0
+      ? parseFloat(inflationData[inflationData.length - 1].value).toFixed(1)
+      : "...";
 
   function generateReport() {
     setReport(`
 Inflation (CPI) is currently at ${latestInflation}, based on real FRED data.
-
 Exchange Rate: 1 USD = ${exchangeRate?.KES?.toFixed(2)} KES.
-
 Economic momentum remains positive, but rising prices indicate increasing inflationary pressure.
-
 GDP growth remains healthy, suggesting continued economic expansion.
-
 Exchange-rate fluctuations and global energy prices remain key risks.
-
-Forecast:
-Inflation is likely to remain elevated over the next quarter unless monetary policy tightens.
+Forecast: Inflation is likely to remain elevated over the next quarter unless monetary policy tightens.
     `);
   }
 
   return (
     <div style={{ display: "flex", minHeight: "100vh", fontFamily: "Arial", backgroundColor: "#f3f4f6" }}>
+      <Helmet>
+        <title>NexusEconomics - AI-Powered Economic Intelligence Platform</title>
+        <meta name="description" content="NexusEconomics is a real-time AI-powered economic intelligence and forecasting platform tracking Kenya inflation, exchange rates, and African economic news." />
+        <meta name="keywords" content="NexusEconomics, Kenya economy, economic intelligence, AI forecasting, inflation, exchange rate" />
+      </Helmet>
+
       {/* SIDEBAR */}
       <div style={{ width: "250px", backgroundColor: "#111827", color: "white", padding: "30px" }}>
-        <h2 style={{ fontSize: "28px" }}>EconAI</h2>
+        <h2 style={{ fontSize: "28px", fontWeight: "bold" }}>NexusEconomics</h2>
         <div style={{ marginTop: "40px", lineHeight: "3" }}>
           <p>📊 Dashboard</p>
           <p>📈 Analytics</p>
@@ -79,8 +81,8 @@ Inflation is likely to remain elevated over the next quarter unless monetary pol
 
       {/* MAIN CONTENT */}
       <div style={{ flex: 1, padding: "40px" }}>
-        <h1 style={{ fontSize: "42px", marginBottom: "10px" }}>Economic AI Dashboard</h1>
-        <p style={{ color: "#6b7280" }}>Real-time economic intelligence platform</p>
+        <h1 style={{ fontSize: "42px", marginBottom: "10px" }}>NexusEconomics</h1>
+        <p style={{ color: "#6b7280" }}>AI-Powered Economic Intelligence & Forecasting Platform</p>
 
         {loading ? (
           <p style={{ marginTop: "30px", fontSize: "18px" }}>Loading live data...</p>
@@ -93,18 +95,15 @@ Inflation is likely to remain elevated over the next quarter unless monetary pol
                 <h1>{latestInflation}</h1>
                 <p style={{ color: "#6b7280" }}>Latest CPI Index</p>
               </div>
-
               <div style={{ backgroundColor: "white", padding: "25px", borderRadius: "15px", boxShadow: "0 2px 10px rgba(0,0,0,0.05)" }}>
                 <h3>Unemployment</h3>
                 <h1>7.1%</h1>
               </div>
-
               <div style={{ backgroundColor: "white", padding: "25px", borderRadius: "15px", boxShadow: "0 2px 10px rgba(0,0,0,0.05)" }}>
                 <h3>Exchange Rate</h3>
                 <h1>{exchangeRate ? exchangeRate.KES.toFixed(2) : "..."}</h1>
                 <p style={{ color: "#6b7280" }}>KES per USD</p>
               </div>
-
               <div style={{ backgroundColor: "white", padding: "25px", borderRadius: "15px", boxShadow: "0 2px 10px rgba(0,0,0,0.05)" }}>
                 <h3>UGX per USD</h3>
                 <h1>{exchangeRate ? exchangeRate.UGX.toFixed(0) : "..."}</h1>
@@ -148,10 +147,7 @@ Inflation is likely to remain elevated over the next quarter unless monetary pol
             {/* AI REPORT */}
             <div style={{ backgroundColor: "white", padding: "30px", borderRadius: "15px", marginTop: "30px" }}>
               <h2>AI Economic Analysis</h2>
-              <button
-                onClick={generateReport}
-                style={{ backgroundColor: "#2563eb", color: "white", border: "none", padding: "12px 20px", borderRadius: "10px", cursor: "pointer", marginTop: "10px" }}
-              >
+              <button onClick={generateReport} style={{ backgroundColor: "#2563eb", color: "white", border: "none", padding: "12px 20px", borderRadius: "10px", cursor: "pointer", marginTop: "10px" }}>
                 Generate AI Report
               </button>
               {report && (
@@ -172,8 +168,7 @@ Inflation is likely to remain elevated over the next quarter unless monetary pol
 
             {/* FOOTER */}
             <div style={{ marginTop: "40px", textAlign: "center", color: "#6b7280", paddingBottom: "30px" }}>
-              EconAI Dashboard v2.0 — Live Data
-              <br />
+              NexusEconomics v2.0 — Live Economic Intelligence<br />
               Developed by Brian Otieno
             </div>
           </>
