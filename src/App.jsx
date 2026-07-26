@@ -11,7 +11,7 @@ import {
 } from "recharts";
 import { getInflationData, getGDPData, getExchangeRate, getNews } from "./api";
 
-const CLAUDE_API_KEY = import.meta.env.VITE_CLAUDE_API_KEY;
+const BACKEND_URL = "https://nexus-economics.onrender.com";
 
 export default function App() {
   const [inflationData, setInflationData] = useState([]);
@@ -55,40 +55,18 @@ export default function App() {
     setReportLoading(true);
     setReport("");
     try {
-      const response = await fetch("https://api.anthropic.com/v1/messages", {
+      const response = await fetch(`${BACKEND_URL}/api/report`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-api-key": CLAUDE_API_KEY,
-          "anthropic-version": "2023-06-01",
-          "anthropic-dangerous-direct-browser-access": "true",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          model: "claude-haiku-4-5-20251001",
-          max_tokens: 1024,
-          messages: [
-            {
-              role: "user",
-              content: `You are an expert economist analyzing real-time Kenya economic data. Write a professional economic intelligence report based on this live data:
-
-- Latest CPI (Inflation Index): ${latestInflation}
-- USD to KES Exchange Rate: ${exchangeRate?.KES?.toFixed(2)}
-- USD to UGX Exchange Rate: ${exchangeRate?.UGX?.toFixed(0)}
-- Unemployment Rate: 7.1%
-
-Write a clear, insightful 3-paragraph report covering:
-1. Current economic situation and what these numbers mean
-2. Key risks and opportunities for Kenya's economy
-3. Short-term outlook and recommendations
-
-Use professional economic language suitable for investors, researchers, and policymakers.`,
-            },
-          ],
+          inflation: latestInflation,
+          exchangeKES: exchangeRate?.KES?.toFixed(2),
+          exchangeUGX: exchangeRate?.UGX?.toFixed(0),
+          unemployment: "7.1",
         }),
       });
-
       const data = await response.json();
-      setReport(data.content[0].text);
+      setReport(data.report);
     } catch (error) {
       setReport("Error generating report. Please try again.");
       console.error(error);
