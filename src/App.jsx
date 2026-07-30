@@ -1,17 +1,44 @@
 import { useState, useEffect } from "react";
 import { Helmet } from "react-helmet";
 import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
+  LineChart, Line, BarChart, Bar, XAxis, YAxis,
+  CartesianGrid, Tooltip, ResponsiveContainer, Legend,
 } from "recharts";
-import { getInflationData, getGDPData, getExchangeRate, getNews } from "./api";
+import { getInflationData, getExchangeRate, getNews } from "./api";
 
 const BACKEND_URL = "https://nexus-economics.onrender.com";
+
+const styles = {
+  app: { display: "flex", minHeight: "100vh", fontFamily: "'Segoe UI', sans-serif", backgroundColor: "#0f172a" },
+  sidebar: { width: "260px", backgroundColor: "#1e293b", color: "white", padding: "30px 20px", display: "flex", flexDirection: "column", gap: "8px", borderRight: "1px solid #334155" },
+  logo: { fontSize: "22px", fontWeight: "800", color: "#38bdf8", marginBottom: "30px", letterSpacing: "-0.5px" },
+  logoSub: { fontSize: "11px", color: "#64748b", fontWeight: "400", display: "block", marginTop: "2px" },
+  navItem: { padding: "12px 16px", borderRadius: "10px", cursor: "pointer", fontSize: "14px", color: "#94a3b8", display: "flex", alignItems: "center", gap: "10px", transition: "all 0.2s" },
+  navItemActive: { backgroundColor: "#0ea5e9", color: "white" },
+  main: { flex: 1, padding: "40px", overflowY: "auto" },
+  header: { marginBottom: "32px" },
+  headerTitle: { fontSize: "32px", fontWeight: "700", color: "white", margin: "0 0 6px 0" },
+  headerSub: { color: "#64748b", fontSize: "14px", margin: 0 },
+  badge: { display: "inline-block", backgroundColor: "#0ea5e910", color: "#38bdf8", border: "1px solid #0ea5e930", borderRadius: "20px", padding: "4px 12px", fontSize: "12px", marginTop: "8px" },
+  grid: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "20px", marginBottom: "28px" },
+  card: { backgroundColor: "#1e293b", borderRadius: "16px", padding: "24px", border: "1px solid #334155" },
+  cardLabel: { fontSize: "12px", color: "#64748b", textTransform: "uppercase", letterSpacing: "1px", marginBottom: "8px" },
+  cardValue: { fontSize: "36px", fontWeight: "700", color: "white", margin: "0 0 4px 0" },
+  cardSub: { fontSize: "12px", color: "#64748b" },
+  cardTrend: { fontSize: "12px", color: "#22c55e", marginTop: "6px" },
+  section: { backgroundColor: "#1e293b", borderRadius: "16px", padding: "28px", border: "1px solid #334155", marginBottom: "24px" },
+  sectionTitle: { fontSize: "18px", fontWeight: "600", color: "white", marginBottom: "20px" },
+  newsItem: { padding: "16px 0", borderBottom: "1px solid #334155" },
+  newsLink: { color: "#38bdf8", fontWeight: "600", textDecoration: "none", fontSize: "14px" },
+  newsDesc: { color: "#64748b", fontSize: "13px", marginTop: "6px" },
+  btn: { backgroundColor: "#0ea5e9", color: "white", border: "none", padding: "12px 24px", borderRadius: "10px", cursor: "pointer", fontSize: "14px", fontWeight: "600" },
+  btnDisabled: { backgroundColor: "#1e3a4a", color: "#64748b", border: "none", padding: "12px 24px", borderRadius: "10px", cursor: "not-allowed", fontSize: "14px", fontWeight: "600" },
+  report: { backgroundColor: "#0f172a", borderRadius: "12px", padding: "20px", marginTop: "20px", color: "#cbd5e1", lineHeight: "1.8", fontSize: "14px", whiteSpace: "pre-line" },
+  riskGrid: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" },
+  riskItem: { backgroundColor: "#0f172a", borderRadius: "10px", padding: "16px", display: "flex", alignItems: "center", gap: "12px" },
+  riskText: { color: "#cbd5e1", fontSize: "14px" },
+  footer: { textAlign: "center", color: "#334155", fontSize: "13px", paddingTop: "20px", borderTop: "1px solid #1e293b", marginTop: "20px" },
+};
 
 export default function App() {
   const [inflationData, setInflationData] = useState([]);
@@ -20,14 +47,13 @@ export default function App() {
   const [report, setReport] = useState("");
   const [loading, setLoading] = useState(true);
   const [reportLoading, setReportLoading] = useState(false);
+  const [activeNav, setActiveNav] = useState("Dashboard");
 
   useEffect(() => {
     async function fetchData() {
       try {
         const [inflation, exchange, newsData] = await Promise.all([
-          getInflationData(),
-          getExchangeRate(),
-          getNews(),
+          getInflationData(), getExchangeRate(), getNews(),
         ]);
         setInflationData(inflation);
         setExchangeRate(exchange);
@@ -41,15 +67,14 @@ export default function App() {
     fetchData();
   }, []);
 
-  const chartData = inflationData.slice(-7).map((obs) => ({
+  const chartData = inflationData.slice(-12).map((obs) => ({
     month: obs.date.slice(0, 7),
     inflation: parseFloat(obs.value),
   }));
 
-  const latestInflation =
-    inflationData.length > 0
-      ? parseFloat(inflationData[inflationData.length - 1].value).toFixed(1)
-      : "...";
+  const latestInflation = inflationData.length > 0
+    ? parseFloat(inflationData[inflationData.length - 1].value).toFixed(1)
+    : "...";
 
   async function generateReport() {
     setReportLoading(true);
@@ -69,14 +94,21 @@ export default function App() {
       setReport(data.report);
     } catch (error) {
       setReport("Error generating report. Please try again.");
-      console.error(error);
     } finally {
       setReportLoading(false);
     }
   }
 
+  const navItems = [
+    { icon: "📊", label: "Dashboard" },
+    { icon: "📈", label: "Analytics" },
+    { icon: "🌍", label: "Global Markets" },
+    { icon: "🤖", label: "AI Reports" },
+    { icon: "⚙️", label: "Settings" },
+  ];
+
   return (
-    <div style={{ display: "flex", minHeight: "100vh", fontFamily: "Arial", backgroundColor: "#f3f4f6" }}>
+    <div style={styles.app}>
       <Helmet>
         <title>NexusEconomics - AI-Powered Economic Intelligence Platform</title>
         <meta name="description" content="NexusEconomics is a real-time AI-powered economic intelligence and forecasting platform tracking Kenya inflation, exchange rates, and African economic news." />
@@ -84,113 +116,136 @@ export default function App() {
       </Helmet>
 
       {/* SIDEBAR */}
-      <div style={{ width: "250px", backgroundColor: "#111827", color: "white", padding: "30px" }}>
-        <h2 style={{ fontSize: "28px", fontWeight: "bold" }}>NexusEconomics</h2>
-        <div style={{ marginTop: "40px", lineHeight: "3" }}>
-          <p>📊 Dashboard</p>
-          <p>📈 Analytics</p>
-          <p>🌍 Global Markets</p>
-          <p>🤖 AI Reports</p>
-          <p>⚙️ Settings</p>
+      <div style={styles.sidebar}>
+        <div style={styles.logo}>
+          NexusEconomics
+          <span style={styles.logoSub}>Economic Intelligence Platform</span>
+        </div>
+        {navItems.map((item) => (
+          <div
+            key={item.label}
+            style={{ ...styles.navItem, ...(activeNav === item.label ? styles.navItemActive : {}) }}
+            onClick={() => setActiveNav(item.label)}
+          >
+            {item.icon} {item.label}
+          </div>
+        ))}
+        <div style={{ marginTop: "auto", padding: "16px", backgroundColor: "#0f172a", borderRadius: "12px" }}>
+          <div style={{ fontSize: "12px", color: "#64748b" }}>Live Data Status</div>
+          <div style={{ fontSize: "13px", color: "#22c55e", marginTop: "4px" }}>● All systems operational</div>
         </div>
       </div>
 
-      {/* MAIN CONTENT */}
-      <div style={{ flex: 1, padding: "40px" }}>
-        <h1 style={{ fontSize: "42px", marginBottom: "10px" }}>NexusEconomics</h1>
-        <p style={{ color: "#6b7280" }}>AI-Powered Economic Intelligence & Forecasting Platform</p>
+      {/* MAIN */}
+      <div style={styles.main}>
+        <div style={styles.header}>
+          <h1 style={styles.headerTitle}>Economic Dashboard</h1>
+          <p style={styles.headerSub}>Real-time economic intelligence for Kenya & East Africa</p>
+          <span style={styles.badge}>🔴 Live Data</span>
+        </div>
 
         {loading ? (
-          <p style={{ marginTop: "30px", fontSize: "18px" }}>Loading live data...</p>
+          <div style={{ color: "#64748b", fontSize: "16px" }}>Loading live data...</div>
         ) : (
           <>
             {/* KPI CARDS */}
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "20px", marginTop: "30px" }}>
-              <div style={{ backgroundColor: "white", padding: "25px", borderRadius: "15px", boxShadow: "0 2px 10px rgba(0,0,0,0.05)" }}>
-                <h3>Inflation (CPI)</h3>
-                <h1>{latestInflation}</h1>
-                <p style={{ color: "#6b7280" }}>Latest CPI Index</p>
+            <div style={styles.grid}>
+              <div style={styles.card}>
+                <div style={styles.cardLabel}>Inflation (CPI)</div>
+                <div style={styles.cardValue}>{latestInflation}</div>
+                <div style={styles.cardSub}>Latest CPI Index</div>
+                <div style={styles.cardTrend}>↑ FRED Data</div>
               </div>
-              <div style={{ backgroundColor: "white", padding: "25px", borderRadius: "15px", boxShadow: "0 2px 10px rgba(0,0,0,0.05)" }}>
-                <h3>Unemployment</h3>
-                <h1>7.1%</h1>
+              <div style={styles.card}>
+                <div style={styles.cardLabel}>Unemployment</div>
+                <div style={styles.cardValue}>7.1%</div>
+                <div style={styles.cardSub}>National Rate</div>
+                <div style={{ ...styles.cardTrend, color: "#f59e0b" }}>→ Stable</div>
               </div>
-              <div style={{ backgroundColor: "white", padding: "25px", borderRadius: "15px", boxShadow: "0 2px 10px rgba(0,0,0,0.05)" }}>
-                <h3>Exchange Rate</h3>
-                <h1>{exchangeRate ? exchangeRate.KES.toFixed(2) : "..."}</h1>
-                <p style={{ color: "#6b7280" }}>KES per USD</p>
+              <div style={styles.card}>
+                <div style={styles.cardLabel}>USD/KES Rate</div>
+                <div style={styles.cardValue}>{exchangeRate ? exchangeRate.KES.toFixed(2) : "..."}</div>
+                <div style={styles.cardSub}>Kenya Shilling</div>
+                <div style={styles.cardTrend}>↑ Live Rate</div>
               </div>
-              <div style={{ backgroundColor: "white", padding: "25px", borderRadius: "15px", boxShadow: "0 2px 10px rgba(0,0,0,0.05)" }}>
-                <h3>UGX per USD</h3>
-                <h1>{exchangeRate ? exchangeRate.UGX.toFixed(0) : "..."}</h1>
-                <p style={{ color: "#6b7280" }}>Uganda Shilling</p>
+              <div style={styles.card}>
+                <div style={styles.cardLabel}>USD/UGX Rate</div>
+                <div style={styles.cardValue}>{exchangeRate ? exchangeRate.UGX.toFixed(0) : "..."}</div>
+                <div style={styles.cardSub}>Uganda Shilling</div>
+                <div style={styles.cardTrend}>↑ Live Rate</div>
               </div>
             </div>
 
             {/* CHART */}
-            <div style={{ backgroundColor: "white", padding: "30px", borderRadius: "15px", marginTop: "30px" }}>
-              <h2>Inflation Trend (CPI)</h2>
-              <div style={{ height: "350px" }}>
+            <div style={styles.section}>
+              <div style={styles.sectionTitle}>📈 Inflation Trend (CPI) — Last 12 Months</div>
+              <div style={{ height: "300px" }}>
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={chartData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="month" />
-                    <YAxis />
-                    <Tooltip />
-                    <Line type="monotone" dataKey="inflation" stroke="#2563eb" strokeWidth={3} />
+                    <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+                    <XAxis dataKey="month" stroke="#64748b" tick={{ fontSize: 12 }} />
+                    <YAxis stroke="#64748b" tick={{ fontSize: 12 }} />
+                    <Tooltip contentStyle={{ backgroundColor: "#1e293b", border: "1px solid #334155", borderRadius: "8px", color: "white" }} />
+                    <Line type="monotone" dataKey="inflation" stroke="#38bdf8" strokeWidth={3} dot={false} />
                   </LineChart>
                 </ResponsiveContainer>
               </div>
             </div>
 
             {/* NEWS */}
-            <div style={{ backgroundColor: "white", padding: "30px", borderRadius: "15px", marginTop: "30px" }}>
-              <h2>Latest Kenya Economic News</h2>
-              {news.length > 0 ? (
-                news.map((article, index) => (
-                  <div key={index} style={{ marginTop: "15px", borderBottom: "1px solid #f3f4f6", paddingBottom: "15px" }}>
-                    <a href={article.url} target="_blank" rel="noreferrer" style={{ fontWeight: "bold", color: "#2563eb", textDecoration: "none" }}>
-                      {article.title}
-                    </a>
-                    <p style={{ color: "#6b7280", fontSize: "14px", marginTop: "5px" }}>{article.description}</p>
-                  </div>
-                ))
-              ) : (
-                <p>No news available.</p>
-              )}
+            <div style={styles.section}>
+              <div style={styles.sectionTitle}>📰 Latest Kenya Economic News</div>
+              {news.length > 0 ? news.map((article, index) => (
+                <div key={index} style={styles.newsItem}>
+                  <a href={article.url} target="_blank" rel="noreferrer" style={styles.newsLink}>
+                    {article.title}
+                  </a>
+                  <p style={styles.newsDesc}>{article.description}</p>
+                </div>
+              )) : <p style={{ color: "#64748b" }}>No news available.</p>}
             </div>
 
             {/* AI REPORT */}
-            <div style={{ backgroundColor: "white", padding: "30px", borderRadius: "15px", marginTop: "30px" }}>
-              <h2>AI Economic Analysis</h2>
-              <p style={{ color: "#6b7280", fontSize: "14px" }}>Powered by Claude AI — analyzing live economic data</p>
+            <div style={styles.section}>
+              <div style={styles.sectionTitle}>🤖 AI Economic Analysis</div>
+              <p style={{ color: "#64748b", fontSize: "13px", marginBottom: "16px" }}>
+                Powered by Claude AI — generates real-time economic insights from live data
+              </p>
               <button
                 onClick={generateReport}
                 disabled={reportLoading}
-                style={{ backgroundColor: reportLoading ? "#93c5fd" : "#2563eb", color: "white", border: "none", padding: "12px 20px", borderRadius: "10px", cursor: reportLoading ? "not-allowed" : "pointer", marginTop: "10px" }}
+                style={reportLoading ? styles.btnDisabled : styles.btn}
               >
-                {reportLoading ? "Generating Report..." : "Generate AI Report"}
+                {reportLoading ? "⏳ Generating Report..." : "Generate AI Report"}
               </button>
-              {report && (
-                <div style={{ marginTop: "20px", backgroundColor: "#f9fafb", padding: "20px", borderRadius: "10px", whiteSpace: "pre-line", lineHeight: "1.8" }}>
-                  {report}
-                </div>
-              )}
+              {report && <div style={styles.report}>{report}</div>}
             </div>
 
             {/* RISK MONITOR */}
-            <div style={{ backgroundColor: "white", padding: "30px", borderRadius: "15px", marginTop: "30px" }}>
-              <h2>Economic Risk Monitor</h2>
-              <p>🟡 Inflation Risk: Medium</p>
-              <p>🟢 Growth Risk: Low</p>
-              <p>🟡 Currency Risk: Medium</p>
-              <p>🔴 Energy Price Risk: High</p>
+            <div style={styles.section}>
+              <div style={styles.sectionTitle}>⚠️ Economic Risk Monitor</div>
+              <div style={styles.riskGrid}>
+                <div style={styles.riskItem}>
+                  <span style={{ fontSize: "20px" }}>🟡</span>
+                  <span style={styles.riskText}>Inflation Risk: <strong>Medium</strong></span>
+                </div>
+                <div style={styles.riskItem}>
+                  <span style={{ fontSize: "20px" }}>🟢</span>
+                  <span style={styles.riskText}>Growth Risk: <strong>Low</strong></span>
+                </div>
+                <div style={styles.riskItem}>
+                  <span style={{ fontSize: "20px" }}>🟡</span>
+                  <span style={styles.riskText}>Currency Risk: <strong>Medium</strong></span>
+                </div>
+                <div style={styles.riskItem}>
+                  <span style={{ fontSize: "20px" }}>🔴</span>
+                  <span style={styles.riskText}>Energy Price Risk: <strong>High</strong></span>
+                </div>
+              </div>
             </div>
 
-            {/* FOOTER */}
-            <div style={{ marginTop: "40px", textAlign: "center", color: "#6b7280", paddingBottom: "30px" }}>
-              NexusEconomics v2.0 — Live Economic Intelligence<br />
-              Developed by Brian Otieno
+            <div style={styles.footer}>
+              NexusEconomics v2.0 — Live Economic Intelligence · Developed by Brian Otieno
             </div>
           </>
         )}
@@ -198,3 +253,4 @@ export default function App() {
     </div>
   );
 }
+
