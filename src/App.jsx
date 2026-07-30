@@ -38,6 +38,7 @@ const styles = {
   riskText: { color: "#cbd5e1", fontSize: "14px" },
   footer: { textAlign: "center", color: "#334155", fontSize: "13px", paddingTop: "20px", borderTop: "1px solid #1e293b", marginTop: "20px" },
   twoCol: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: "24px", marginBottom: "24px" },
+  countryBtn: { padding: "8px 20px", borderRadius: "8px", border: "none", cursor: "pointer", fontWeight: "600", fontSize: "13px" },
 };
 
 export default function App() {
@@ -48,6 +49,7 @@ export default function App() {
   const [loading, setLoading] = useState(true);
   const [reportLoading, setReportLoading] = useState(false);
   const [activeNav, setActiveNav] = useState("Dashboard");
+  const [country, setCountry] = useState("Kenya");
 
   useEffect(() => {
     async function fetchData() {
@@ -73,9 +75,9 @@ export default function App() {
   }));
 
   const exchangeChartData = exchangeRate ? [
-    { currency: "KES", rate: exchangeRate.KES, fill: "#38bdf8" },
-    { currency: "UGX", rate: exchangeRate.UGX / 10, fill: "#818cf8" },
-    { currency: "TZS", rate: exchangeRate.TZS / 10, fill: "#34d399" },
+    { currency: "KES", rate: exchangeRate.KES },
+    { currency: "UGX", rate: exchangeRate.UGX / 10 },
+    { currency: "TZS", rate: exchangeRate.TZS / 10 },
   ] : [];
 
   const unemploymentData = [
@@ -91,6 +93,27 @@ export default function App() {
     ? parseFloat(inflationData[inflationData.length - 1].value).toFixed(1)
     : "...";
 
+  const countryData = {
+    Kenya: {
+      flag: "🇰🇪",
+      currency: "KES",
+      currencyName: "Kenya Shilling",
+      rate: exchangeRate ? exchangeRate.KES.toFixed(2) : "...",
+      unemployment: "7.1%",
+      risk: { inflation: "Medium", growth: "Low", currency: "Medium", energy: "High" },
+    },
+    Uganda: {
+      flag: "🇺🇬",
+      currency: "UGX",
+      currencyName: "Uganda Shilling",
+      rate: exchangeRate ? exchangeRate.UGX.toFixed(0) : "...",
+      unemployment: "9.2%",
+      risk: { inflation: "High", growth: "Medium", currency: "High", energy: "High" },
+    },
+  };
+
+  const selected = countryData[country];
+
   async function generateReport() {
     setReportLoading(true);
     setReport("");
@@ -102,7 +125,7 @@ export default function App() {
           inflation: latestInflation,
           exchangeKES: exchangeRate?.KES?.toFixed(2),
           exchangeUGX: exchangeRate?.UGX?.toFixed(0),
-          unemployment: "7.1",
+          unemployment: country === "Kenya" ? "7.1" : "9.2",
         }),
       });
       const data = await response.json();
@@ -155,6 +178,23 @@ export default function App() {
           <h1 style={styles.headerTitle}>Economic Dashboard</h1>
           <p style={styles.headerSub}>Real-time economic intelligence for Kenya & East Africa</p>
           <span style={styles.badge}>🔴 Live Data</span>
+
+          {/* COUNTRY SELECTOR */}
+          <div style={{ marginTop: "16px", display: "flex", gap: "10px" }}>
+            {["Kenya", "Uganda"].map((c) => (
+              <button
+                key={c}
+                onClick={() => setCountry(c)}
+                style={{
+                  ...styles.countryBtn,
+                  backgroundColor: country === c ? "#0ea5e9" : "#1e293b",
+                  color: country === c ? "white" : "#64748b",
+                }}
+              >
+                {countryData[c].flag} {c}
+              </button>
+            ))}
+          </div>
         </div>
 
         {loading ? (
@@ -171,25 +211,25 @@ export default function App() {
               </div>
               <div style={styles.card}>
                 <div style={styles.cardLabel}>Unemployment</div>
-                <div style={styles.cardValue}>7.1%</div>
-                <div style={styles.cardSub}>National Rate</div>
+                <div style={styles.cardValue}>{selected.unemployment}</div>
+                <div style={styles.cardSub}>{country} National Rate</div>
                 <div style={{ ...styles.cardTrend, color: "#f59e0b" }}>→ Stable</div>
               </div>
               <div style={styles.card}>
-                <div style={styles.cardLabel}>USD/KES Rate</div>
-                <div style={styles.cardValue}>{exchangeRate ? exchangeRate.KES.toFixed(2) : "..."}</div>
-                <div style={styles.cardSub}>Kenya Shilling</div>
+                <div style={styles.cardLabel}>USD / {selected.currency}</div>
+                <div style={styles.cardValue}>{selected.rate}</div>
+                <div style={styles.cardSub}>{selected.currencyName}</div>
                 <div style={styles.cardTrend}>↑ Live Rate</div>
               </div>
               <div style={styles.card}>
-                <div style={styles.cardLabel}>USD/UGX Rate</div>
-                <div style={styles.cardValue}>{exchangeRate ? exchangeRate.UGX.toFixed(0) : "..."}</div>
-                <div style={styles.cardSub}>Uganda Shilling</div>
+                <div style={styles.cardLabel}>USD / TZS</div>
+                <div style={styles.cardValue}>{exchangeRate ? exchangeRate.TZS.toFixed(0) : "..."}</div>
+                <div style={styles.cardSub}>Tanzania Shilling</div>
                 <div style={styles.cardTrend}>↑ Live Rate</div>
               </div>
             </div>
 
-            {/* TWO CHARTS SIDE BY SIDE */}
+            {/* TWO CHARTS */}
             <div style={styles.twoCol}>
               <div style={styles.section}>
                 <div style={styles.sectionTitle}>📈 Inflation Trend (CPI)</div>
@@ -205,9 +245,8 @@ export default function App() {
                   </ResponsiveContainer>
                 </div>
               </div>
-
               <div style={styles.section}>
-                <div style={styles.sectionTitle}>💹 Unemployment Trend</div>
+                <div style={styles.sectionTitle}>💹 Unemployment Trend — {country}</div>
                 <div style={{ height: "250px" }}>
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={unemploymentData}>
@@ -224,8 +263,8 @@ export default function App() {
 
             {/* EXCHANGE RATE CHART */}
             <div style={styles.section}>
-              <div style={styles.sectionTitle}>💱 East Africa Exchange Rates vs USD (Today)</div>
-              <p style={{ color: "#64748b", fontSize: "12px", marginBottom: "16px" }}>UGX and TZS divided by 10 for scale</p>
+              <div style={styles.sectionTitle}>💱 East Africa Exchange Rates vs USD</div>
+              <p style={{ color: "#64748b", fontSize: "12px", marginBottom: "16px" }}>UGX and TZS divided by 10 for scale comparison</p>
               <div style={{ height: "250px" }}>
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={exchangeChartData}>
@@ -233,11 +272,7 @@ export default function App() {
                     <XAxis dataKey="currency" stroke="#64748b" tick={{ fontSize: 13 }} />
                     <YAxis stroke="#64748b" tick={{ fontSize: 11 }} />
                     <Tooltip {...tooltipStyle} />
-                    <Bar dataKey="rate" radius={[8, 8, 0, 0]}>
-                      {exchangeChartData.map((entry, index) => (
-                        <rect key={index} fill={entry.fill} />
-                      ))}
-                    </Bar>
+                    <Bar dataKey="rate" fill="#38bdf8" radius={[8, 8, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
@@ -245,7 +280,7 @@ export default function App() {
 
             {/* NEWS */}
             <div style={styles.section}>
-              <div style={styles.sectionTitle}>📰 Latest Kenya Economic News</div>
+              <div style={styles.sectionTitle}>📰 Latest {country} Economic News</div>
               {news.length > 0 ? news.map((article, index) => (
                 <div key={index} style={styles.newsItem}>
                   <a href={article.url} target="_blank" rel="noreferrer" style={styles.newsLink}>{article.title}</a>
@@ -256,7 +291,7 @@ export default function App() {
 
             {/* AI REPORT */}
             <div style={styles.section}>
-              <div style={styles.sectionTitle}>🤖 AI Economic Analysis</div>
+              <div style={styles.sectionTitle}>🤖 AI Economic Analysis — {country}</div>
               <p style={{ color: "#64748b", fontSize: "13px", marginBottom: "16px" }}>Powered by Claude AI — generates real-time economic insights from live data</p>
               <button onClick={generateReport} disabled={reportLoading} style={reportLoading ? styles.btnDisabled : styles.btn}>
                 {reportLoading ? "⏳ Generating Report..." : "Generate AI Report"}
@@ -266,12 +301,12 @@ export default function App() {
 
             {/* RISK MONITOR */}
             <div style={styles.section}>
-              <div style={styles.sectionTitle}>⚠️ Economic Risk Monitor</div>
+              <div style={styles.sectionTitle}>⚠️ Economic Risk Monitor — {country}</div>
               <div style={styles.riskGrid}>
-                <div style={styles.riskItem}><span style={{ fontSize: "20px" }}>🟡</span><span style={styles.riskText}>Inflation Risk: <strong>Medium</strong></span></div>
-                <div style={styles.riskItem}><span style={{ fontSize: "20px" }}>🟢</span><span style={styles.riskText}>Growth Risk: <strong>Low</strong></span></div>
-                <div style={styles.riskItem}><span style={{ fontSize: "20px" }}>🟡</span><span style={styles.riskText}>Currency Risk: <strong>Medium</strong></span></div>
-                <div style={styles.riskItem}><span style={{ fontSize: "20px" }}>🔴</span><span style={styles.riskText}>Energy Price Risk: <strong>High</strong></span></div>
+                <div style={styles.riskItem}><span style={{ fontSize: "20px" }}>{selected.risk.inflation === "High" ? "🔴" : "🟡"}</span><span style={styles.riskText}>Inflation Risk: <strong>{selected.risk.inflation}</strong></span></div>
+                <div style={styles.riskItem}><span style={{ fontSize: "20px" }}>{selected.risk.growth === "Low" ? "🟢" : "🟡"}</span><span style={styles.riskText}>Growth Risk: <strong>{selected.risk.growth}</strong></span></div>
+                <div style={styles.riskItem}><span style={{ fontSize: "20px" }}>{selected.risk.currency === "High" ? "🔴" : "🟡"}</span><span style={styles.riskText}>Currency Risk: <strong>{selected.risk.currency}</strong></span></div>
+                <div style={styles.riskItem}><span style={{ fontSize: "20px" }}>🔴</span><span style={styles.riskText}>Energy Price Risk: <strong>{selected.risk.energy}</strong></span></div>
               </div>
             </div>
 
