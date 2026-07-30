@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Helmet } from "react-helmet";
 import {
   LineChart, Line, BarChart, Bar, XAxis, YAxis,
-  CartesianGrid, Tooltip, ResponsiveContainer, Legend,
+  CartesianGrid, Tooltip, ResponsiveContainer,
 } from "recharts";
 import { getInflationData, getExchangeRate, getNews } from "./api";
 
@@ -13,14 +13,13 @@ const styles = {
   sidebar: { width: "260px", backgroundColor: "#1e293b", color: "white", padding: "30px 20px", display: "flex", flexDirection: "column", gap: "8px", borderRight: "1px solid #334155" },
   logo: { fontSize: "22px", fontWeight: "800", color: "#38bdf8", marginBottom: "30px", letterSpacing: "-0.5px" },
   logoSub: { fontSize: "11px", color: "#64748b", fontWeight: "400", display: "block", marginTop: "2px" },
-  navItem: { padding: "12px 16px", borderRadius: "10px", cursor: "pointer", fontSize: "14px", color: "#94a3b8", display: "flex", alignItems: "center", gap: "10px", transition: "all 0.2s" },
+  navItem: { padding: "12px 16px", borderRadius: "10px", cursor: "pointer", fontSize: "14px", color: "#94a3b8", display: "flex", alignItems: "center", gap: "10px" },
   navItemActive: { backgroundColor: "#0ea5e9", color: "white" },
   main: { flex: 1, padding: "40px", overflowY: "auto" },
-  header: { marginBottom: "32px" },
   headerTitle: { fontSize: "32px", fontWeight: "700", color: "white", margin: "0 0 6px 0" },
   headerSub: { color: "#64748b", fontSize: "14px", margin: 0 },
   badge: { display: "inline-block", backgroundColor: "#0ea5e910", color: "#38bdf8", border: "1px solid #0ea5e930", borderRadius: "20px", padding: "4px 12px", fontSize: "12px", marginTop: "8px" },
-  grid: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "20px", marginBottom: "28px" },
+  grid: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "20px", marginBottom: "28px", marginTop: "28px" },
   card: { backgroundColor: "#1e293b", borderRadius: "16px", padding: "24px", border: "1px solid #334155" },
   cardLabel: { fontSize: "12px", color: "#64748b", textTransform: "uppercase", letterSpacing: "1px", marginBottom: "8px" },
   cardValue: { fontSize: "36px", fontWeight: "700", color: "white", margin: "0 0 4px 0" },
@@ -38,6 +37,7 @@ const styles = {
   riskItem: { backgroundColor: "#0f172a", borderRadius: "10px", padding: "16px", display: "flex", alignItems: "center", gap: "12px" },
   riskText: { color: "#cbd5e1", fontSize: "14px" },
   footer: { textAlign: "center", color: "#334155", fontSize: "13px", paddingTop: "20px", borderTop: "1px solid #1e293b", marginTop: "20px" },
+  twoCol: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: "24px", marginBottom: "24px" },
 };
 
 export default function App() {
@@ -71,6 +71,21 @@ export default function App() {
     month: obs.date.slice(0, 7),
     inflation: parseFloat(obs.value),
   }));
+
+  const exchangeChartData = exchangeRate ? [
+    { currency: "KES", rate: exchangeRate.KES, fill: "#38bdf8" },
+    { currency: "UGX", rate: exchangeRate.UGX / 10, fill: "#818cf8" },
+    { currency: "TZS", rate: exchangeRate.TZS / 10, fill: "#34d399" },
+  ] : [];
+
+  const unemploymentData = [
+    { year: "2021", rate: 7.9 },
+    { year: "2022", rate: 7.4 },
+    { year: "2023", rate: 7.3 },
+    { year: "2024", rate: 7.2 },
+    { year: "2025", rate: 7.1 },
+    { year: "2026", rate: 7.1 },
+  ];
 
   const latestInflation = inflationData.length > 0
     ? parseFloat(inflationData[inflationData.length - 1].value).toFixed(1)
@@ -107,6 +122,8 @@ export default function App() {
     { icon: "⚙️", label: "Settings" },
   ];
 
+  const tooltipStyle = { contentStyle: { backgroundColor: "#1e293b", border: "1px solid #334155", borderRadius: "8px", color: "white" } };
+
   return (
     <div style={styles.app}>
       <Helmet>
@@ -122,11 +139,7 @@ export default function App() {
           <span style={styles.logoSub}>Economic Intelligence Platform</span>
         </div>
         {navItems.map((item) => (
-          <div
-            key={item.label}
-            style={{ ...styles.navItem, ...(activeNav === item.label ? styles.navItemActive : {}) }}
-            onClick={() => setActiveNav(item.label)}
-          >
+          <div key={item.label} style={{ ...styles.navItem, ...(activeNav === item.label ? styles.navItemActive : {}) }} onClick={() => setActiveNav(item.label)}>
             {item.icon} {item.label}
           </div>
         ))}
@@ -138,14 +151,14 @@ export default function App() {
 
       {/* MAIN */}
       <div style={styles.main}>
-        <div style={styles.header}>
+        <div>
           <h1 style={styles.headerTitle}>Economic Dashboard</h1>
           <p style={styles.headerSub}>Real-time economic intelligence for Kenya & East Africa</p>
           <span style={styles.badge}>🔴 Live Data</span>
         </div>
 
         {loading ? (
-          <div style={{ color: "#64748b", fontSize: "16px" }}>Loading live data...</div>
+          <div style={{ color: "#64748b", fontSize: "16px", marginTop: "40px" }}>Loading live data...</div>
         ) : (
           <>
             {/* KPI CARDS */}
@@ -176,18 +189,56 @@ export default function App() {
               </div>
             </div>
 
-            {/* CHART */}
+            {/* TWO CHARTS SIDE BY SIDE */}
+            <div style={styles.twoCol}>
+              <div style={styles.section}>
+                <div style={styles.sectionTitle}>📈 Inflation Trend (CPI)</div>
+                <div style={{ height: "250px" }}>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={chartData}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+                      <XAxis dataKey="month" stroke="#64748b" tick={{ fontSize: 11 }} />
+                      <YAxis stroke="#64748b" tick={{ fontSize: 11 }} />
+                      <Tooltip {...tooltipStyle} />
+                      <Line type="monotone" dataKey="inflation" stroke="#38bdf8" strokeWidth={3} dot={false} />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+
+              <div style={styles.section}>
+                <div style={styles.sectionTitle}>💹 Unemployment Trend</div>
+                <div style={{ height: "250px" }}>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={unemploymentData}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+                      <XAxis dataKey="year" stroke="#64748b" tick={{ fontSize: 11 }} />
+                      <YAxis stroke="#64748b" tick={{ fontSize: 11 }} domain={[6, 9]} />
+                      <Tooltip {...tooltipStyle} />
+                      <Bar dataKey="rate" fill="#818cf8" radius={[6, 6, 0, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+            </div>
+
+            {/* EXCHANGE RATE CHART */}
             <div style={styles.section}>
-              <div style={styles.sectionTitle}>📈 Inflation Trend (CPI) — Last 12 Months</div>
-              <div style={{ height: "300px" }}>
+              <div style={styles.sectionTitle}>💱 East Africa Exchange Rates vs USD (Today)</div>
+              <p style={{ color: "#64748b", fontSize: "12px", marginBottom: "16px" }}>UGX and TZS divided by 10 for scale</p>
+              <div style={{ height: "250px" }}>
                 <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={chartData}>
+                  <BarChart data={exchangeChartData}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-                    <XAxis dataKey="month" stroke="#64748b" tick={{ fontSize: 12 }} />
-                    <YAxis stroke="#64748b" tick={{ fontSize: 12 }} />
-                    <Tooltip contentStyle={{ backgroundColor: "#1e293b", border: "1px solid #334155", borderRadius: "8px", color: "white" }} />
-                    <Line type="monotone" dataKey="inflation" stroke="#38bdf8" strokeWidth={3} dot={false} />
-                  </LineChart>
+                    <XAxis dataKey="currency" stroke="#64748b" tick={{ fontSize: 13 }} />
+                    <YAxis stroke="#64748b" tick={{ fontSize: 11 }} />
+                    <Tooltip {...tooltipStyle} />
+                    <Bar dataKey="rate" radius={[8, 8, 0, 0]}>
+                      {exchangeChartData.map((entry, index) => (
+                        <rect key={index} fill={entry.fill} />
+                      ))}
+                    </Bar>
+                  </BarChart>
                 </ResponsiveContainer>
               </div>
             </div>
@@ -197,9 +248,7 @@ export default function App() {
               <div style={styles.sectionTitle}>📰 Latest Kenya Economic News</div>
               {news.length > 0 ? news.map((article, index) => (
                 <div key={index} style={styles.newsItem}>
-                  <a href={article.url} target="_blank" rel="noreferrer" style={styles.newsLink}>
-                    {article.title}
-                  </a>
+                  <a href={article.url} target="_blank" rel="noreferrer" style={styles.newsLink}>{article.title}</a>
                   <p style={styles.newsDesc}>{article.description}</p>
                 </div>
               )) : <p style={{ color: "#64748b" }}>No news available.</p>}
@@ -208,14 +257,8 @@ export default function App() {
             {/* AI REPORT */}
             <div style={styles.section}>
               <div style={styles.sectionTitle}>🤖 AI Economic Analysis</div>
-              <p style={{ color: "#64748b", fontSize: "13px", marginBottom: "16px" }}>
-                Powered by Claude AI — generates real-time economic insights from live data
-              </p>
-              <button
-                onClick={generateReport}
-                disabled={reportLoading}
-                style={reportLoading ? styles.btnDisabled : styles.btn}
-              >
+              <p style={{ color: "#64748b", fontSize: "13px", marginBottom: "16px" }}>Powered by Claude AI — generates real-time economic insights from live data</p>
+              <button onClick={generateReport} disabled={reportLoading} style={reportLoading ? styles.btnDisabled : styles.btn}>
                 {reportLoading ? "⏳ Generating Report..." : "Generate AI Report"}
               </button>
               {report && <div style={styles.report}>{report}</div>}
@@ -225,22 +268,10 @@ export default function App() {
             <div style={styles.section}>
               <div style={styles.sectionTitle}>⚠️ Economic Risk Monitor</div>
               <div style={styles.riskGrid}>
-                <div style={styles.riskItem}>
-                  <span style={{ fontSize: "20px" }}>🟡</span>
-                  <span style={styles.riskText}>Inflation Risk: <strong>Medium</strong></span>
-                </div>
-                <div style={styles.riskItem}>
-                  <span style={{ fontSize: "20px" }}>🟢</span>
-                  <span style={styles.riskText}>Growth Risk: <strong>Low</strong></span>
-                </div>
-                <div style={styles.riskItem}>
-                  <span style={{ fontSize: "20px" }}>🟡</span>
-                  <span style={styles.riskText}>Currency Risk: <strong>Medium</strong></span>
-                </div>
-                <div style={styles.riskItem}>
-                  <span style={{ fontSize: "20px" }}>🔴</span>
-                  <span style={styles.riskText}>Energy Price Risk: <strong>High</strong></span>
-                </div>
+                <div style={styles.riskItem}><span style={{ fontSize: "20px" }}>🟡</span><span style={styles.riskText}>Inflation Risk: <strong>Medium</strong></span></div>
+                <div style={styles.riskItem}><span style={{ fontSize: "20px" }}>🟢</span><span style={styles.riskText}>Growth Risk: <strong>Low</strong></span></div>
+                <div style={styles.riskItem}><span style={{ fontSize: "20px" }}>🟡</span><span style={styles.riskText}>Currency Risk: <strong>Medium</strong></span></div>
+                <div style={styles.riskItem}><span style={{ fontSize: "20px" }}>🔴</span><span style={styles.riskText}>Energy Price Risk: <strong>High</strong></span></div>
               </div>
             </div>
 
@@ -253,4 +284,3 @@ export default function App() {
     </div>
   );
 }
-
