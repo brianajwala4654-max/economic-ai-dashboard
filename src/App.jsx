@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Helmet } from "react-helmet";
+import jsPDF from "jspdf";
 import {
   LineChart, Line, BarChart, Bar, XAxis, YAxis,
   CartesianGrid, Tooltip, ResponsiveContainer,
@@ -31,6 +32,7 @@ const styles = {
   newsLink: { color: "#38bdf8", fontWeight: "600", textDecoration: "none", fontSize: "14px" },
   newsDesc: { color: "#64748b", fontSize: "13px", marginTop: "6px" },
   btn: { backgroundColor: "#0ea5e9", color: "white", border: "none", padding: "12px 24px", borderRadius: "10px", cursor: "pointer", fontSize: "14px", fontWeight: "600" },
+  btnGreen: { backgroundColor: "#059669", color: "white", border: "none", padding: "12px 24px", borderRadius: "10px", cursor: "pointer", fontSize: "14px", fontWeight: "600", marginLeft: "12px" },
   btnDisabled: { backgroundColor: "#1e3a4a", color: "#64748b", border: "none", padding: "12px 24px", borderRadius: "10px", cursor: "not-allowed", fontSize: "14px", fontWeight: "600" },
   report: { backgroundColor: "#0f172a", borderRadius: "12px", padding: "20px", marginTop: "20px", color: "#cbd5e1", lineHeight: "1.8", fontSize: "14px", whiteSpace: "pre-line" },
   riskGrid: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" },
@@ -135,6 +137,51 @@ export default function App() {
     } finally {
       setReportLoading(false);
     }
+  }
+
+  function downloadPDF() {
+    const doc = new jsPDF();
+    doc.setFontSize(22);
+    doc.setTextColor(14, 165, 233);
+    doc.text("NexusEconomics", 20, 22);
+    doc.setFontSize(11);
+    doc.setTextColor(100, 116, 139);
+    doc.text("AI-Powered Economic Intelligence Report", 20, 31);
+    doc.text(`Country: ${country}   |   Generated: ${new Date().toLocaleDateString()}`, 20, 39);
+    doc.setDrawColor(51, 65, 85);
+    doc.line(20, 44, 190, 44);
+    doc.setFontSize(14);
+    doc.setTextColor(30, 30, 30);
+    doc.text("Economic Indicators", 20, 56);
+    doc.setFontSize(11);
+    doc.text(`Inflation (CPI):         ${latestInflation}`, 20, 68);
+    doc.text(`Unemployment:            ${selected.unemployment}`, 20, 78);
+    doc.text(`USD / ${selected.currency}:              ${selected.rate}`, 20, 88);
+    doc.text(`USD / TZS:               ${exchangeRate ? exchangeRate.TZS.toFixed(0) : "N/A"}`, 20, 98);
+    doc.line(20, 106, 190, 106);
+    doc.setFontSize(14);
+    doc.text("Risk Assessment", 20, 118);
+    doc.setFontSize(11);
+    doc.text(`Inflation Risk:     ${selected.risk.inflation}`, 20, 130);
+    doc.text(`Growth Risk:        ${selected.risk.growth}`, 20, 140);
+    doc.text(`Currency Risk:      ${selected.risk.currency}`, 20, 150);
+    doc.text(`Energy Price Risk:  ${selected.risk.energy}`, 20, 160);
+    doc.line(20, 168, 190, 168);
+    if (report) {
+      doc.setFontSize(14);
+      doc.text("AI Economic Analysis", 20, 180);
+      doc.setFontSize(10);
+      const lines = doc.splitTextToSize(report, 170);
+      doc.text(lines, 20, 192);
+    } else {
+      doc.setFontSize(10);
+      doc.setTextColor(150);
+      doc.text("No AI report generated yet. Click 'Generate AI Report' first.", 20, 180);
+    }
+    doc.setFontSize(9);
+    doc.setTextColor(150);
+    doc.text("NexusEconomics v2.0 — Live Economic Intelligence — Developed by Brian Otieno", 20, 285);
+    doc.save(`NexusEconomics_${country}_Report.pdf`);
   }
 
   const navItems = [
@@ -293,9 +340,14 @@ export default function App() {
             <div style={styles.section}>
               <div style={styles.sectionTitle}>🤖 AI Economic Analysis — {country}</div>
               <p style={{ color: "#64748b", fontSize: "13px", marginBottom: "16px" }}>Powered by Claude AI — generates real-time economic insights from live data</p>
-              <button onClick={generateReport} disabled={reportLoading} style={reportLoading ? styles.btnDisabled : styles.btn}>
-                {reportLoading ? "⏳ Generating Report..." : "Generate AI Report"}
-              </button>
+              <div style={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: "12px" }}>
+                <button onClick={generateReport} disabled={reportLoading} style={reportLoading ? styles.btnDisabled : styles.btn}>
+                  {reportLoading ? "⏳ Generating Report..." : "Generate AI Report"}
+                </button>
+                <button onClick={downloadPDF} style={styles.btnGreen}>
+                  ⬇ Download PDF
+                </button>
+              </div>
               {report && <div style={styles.report}>{report}</div>}
             </div>
 
