@@ -16,7 +16,7 @@ const CLAUDE_API_KEY = process.env.CLAUDE_API_KEY;
 // Inflation
 app.get('/api/inflation', async (req, res) => {
   try {
-    const response = await axios.get(`https://api.stlouisfed.org/fred/series/observations?series_id=CPIAUCSL&api_key=${FRED_API_KEY}&sort_order=desc&limit=1&file_type=json`);
+    const response = await axios.get(`https://api.stlouisfed.org/fred/series/observations?series_id=CPIAUCSL&api_key=${FRED_API_KEY}&sort_order=desc&limit=24&file_type=json`);
     res.json(response.data);
   } catch (error) {
     res.status(500).json({ error: 'Failed to fetch inflation data' });
