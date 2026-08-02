@@ -69,7 +69,7 @@ export default function App() {
     fetchData();
   }, []);
 
-  const chartData = inflationData.slice(-12).map((obs) => ({
+  const chartData = inflationData.slice().reverse().slice(-12).map((obs) => ({
     month: obs.date.slice(0, 7),
     inflation: parseFloat(obs.value),
   }));
