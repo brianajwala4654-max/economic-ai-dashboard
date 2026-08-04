@@ -32,7 +32,7 @@ const styles = {
   newsLink: { color: "#38bdf8", fontWeight: "600", textDecoration: "none", fontSize: "14px" },
   newsDesc: { color: "#64748b", fontSize: "13px", marginTop: "6px" },
   btn: { backgroundColor: "#0ea5e9", color: "white", border: "none", padding: "12px 24px", borderRadius: "10px", cursor: "pointer", fontSize: "14px", fontWeight: "600" },
-  btnGreen: { backgroundColor: "#059669", color: "white", border: "none", padding: "12px 24px", borderRadius: "10px", cursor: "pointer", fontSize: "14px", fontWeight: "600", marginLeft: "12px" },
+  btnGreen: { backgroundColor: "#059669", color: "white", border: "none", padding: "12px 24px", borderRadius: "10px", cursor: "pointer", fontSize: "14px", fontWeight: "600" },
   btnDisabled: { backgroundColor: "#1e3a4a", color: "#64748b", border: "none", padding: "12px 24px", borderRadius: "10px", cursor: "not-allowed", fontSize: "14px", fontWeight: "600" },
   report: { backgroundColor: "#0f172a", borderRadius: "12px", padding: "20px", marginTop: "20px", color: "#cbd5e1", lineHeight: "1.8", fontSize: "14px", whiteSpace: "pre-line" },
   riskGrid: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" },
@@ -71,7 +71,7 @@ export default function App() {
     fetchData();
   }, []);
 
-  const chartData = inflationData.slice().reverse().slice(-12).map((obs) => ({
+  const chartData = inflationData.slice(-12).map((obs) => ({
     month: obs.date.slice(0, 7),
     inflation: parseFloat(obs.value),
   }));
@@ -112,6 +112,30 @@ export default function App() {
       unemployment: "9.2%",
       risk: { inflation: "High", growth: "Medium", currency: "High", energy: "High" },
     },
+    Tanzania: {
+      flag: "🇹🇿",
+      currency: "TZS",
+      currencyName: "Tanzania Shilling",
+      rate: exchangeRate ? exchangeRate.TZS.toFixed(0) : "...",
+      unemployment: "10.3%",
+      risk: { inflation: "Medium", growth: "Medium", currency: "Medium", energy: "High" },
+    },
+    Rwanda: {
+      flag: "🇷🇼",
+      currency: "RWF",
+      currencyName: "Rwanda Franc",
+      rate: exchangeRate ? exchangeRate.RWF.toFixed(0) : "...",
+      unemployment: "15.4%",
+      risk: { inflation: "Low", growth: "Low", currency: "Low", energy: "Medium" },
+    },
+    Ethiopia: {
+      flag: "🇪🇹",
+      currency: "ETB",
+      currencyName: "Ethiopian Birr",
+      rate: exchangeRate ? exchangeRate.ETB.toFixed(2) : "...",
+      unemployment: "19.1%",
+      risk: { inflation: "High", growth: "Medium", currency: "High", energy: "High" },
+    },
   };
 
   const selected = countryData[country];
@@ -127,7 +151,8 @@ export default function App() {
           inflation: latestInflation,
           exchangeKES: exchangeRate?.KES?.toFixed(2),
           exchangeUGX: exchangeRate?.UGX?.toFixed(0),
-          unemployment: country === "Kenya" ? "7.1" : "9.2",
+          unemployment: selected.unemployment.replace("%", ""),
+          country: country,
         }),
       });
       const data = await response.json();
@@ -223,15 +248,15 @@ export default function App() {
       <div style={styles.main}>
         <div>
           <h1 style={styles.headerTitle}>Economic Dashboard</h1>
-          <p style={styles.headerSub}>Real-time economic intelligence for Kenya & East Africa</p>
+          <p style={styles.headerSub}>Real-time economic intelligence for East Africa</p>
           <span style={styles.badge}>🔴 Live Data</span>
 
           {/* COUNTRY SELECTOR */}
-          <div style={{ marginTop: "16px", display: "flex", gap: "10px" }}>
-            {["Kenya", "Uganda"].map((c) => (
+          <div style={{ marginTop: "16px", display: "flex", gap: "10px", flexWrap: "wrap" }}>
+            {Object.keys(countryData).map((c) => (
               <button
                 key={c}
-                onClick={() => setCountry(c)}
+                onClick={() => { setCountry(c); setReport(""); }}
                 style={{
                   ...styles.countryBtn,
                   backgroundColor: country === c ? "#0ea5e9" : "#1e293b",
@@ -279,15 +304,15 @@ export default function App() {
             {/* TWO CHARTS */}
             <div style={styles.twoCol}>
               <div style={styles.section}>
-                <div style={styles.sectionTitle}>📈 Inflation Trend (CPI)</div>
+                <div style={styles.sectionTitle}>📈 Inflation Trend (CPI) — 12 Months</div>
                 <div style={{ height: "250px" }}>
                   <ResponsiveContainer width="100%" height="100%">
                     <LineChart data={chartData}>
                       <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
                       <XAxis dataKey="month" stroke="#64748b" tick={{ fontSize: 11 }} />
-                      <YAxis stroke="#64748b" tick={{ fontSize: 11 }} />
+                      <YAxis stroke="#64748b" tick={{ fontSize: 11 }} domain={["auto", "auto"]} />
                       <Tooltip {...tooltipStyle} />
-                      <Line type="monotone" dataKey="inflation" stroke="#38bdf8" strokeWidth={3} dot={false} />
+                      <Line type="monotone" dataKey="inflation" stroke="#38bdf8" strokeWidth={3} dot={{ r: 3, fill: "#38bdf8" }} />
                     </LineChart>
                   </ResponsiveContainer>
                 </div>
@@ -355,10 +380,10 @@ export default function App() {
             <div style={styles.section}>
               <div style={styles.sectionTitle}>⚠️ Economic Risk Monitor — {country}</div>
               <div style={styles.riskGrid}>
-                <div style={styles.riskItem}><span style={{ fontSize: "20px" }}>{selected.risk.inflation === "High" ? "🔴" : "🟡"}</span><span style={styles.riskText}>Inflation Risk: <strong>{selected.risk.inflation}</strong></span></div>
-                <div style={styles.riskItem}><span style={{ fontSize: "20px" }}>{selected.risk.growth === "Low" ? "🟢" : "🟡"}</span><span style={styles.riskText}>Growth Risk: <strong>{selected.risk.growth}</strong></span></div>
-                <div style={styles.riskItem}><span style={{ fontSize: "20px" }}>{selected.risk.currency === "High" ? "🔴" : "🟡"}</span><span style={styles.riskText}>Currency Risk: <strong>{selected.risk.currency}</strong></span></div>
-                <div style={styles.riskItem}><span style={{ fontSize: "20px" }}>🔴</span><span style={styles.riskText}>Energy Price Risk: <strong>{selected.risk.energy}</strong></span></div>
+                <div style={styles.riskItem}><span style={{ fontSize: "20px" }}>{selected.risk.inflation === "High" ? "🔴" : selected.risk.inflation === "Low" ? "🟢" : "🟡"}</span><span style={styles.riskText}>Inflation Risk: <strong>{selected.risk.inflation}</strong></span></div>
+                <div style={styles.riskItem}><span style={{ fontSize: "20px" }}>{selected.risk.growth === "Low" ? "🟢" : selected.risk.growth === "High" ? "🔴" : "🟡"}</span><span style={styles.riskText}>Growth Risk: <strong>{selected.risk.growth}</strong></span></div>
+                <div style={styles.riskItem}><span style={{ fontSize: "20px" }}>{selected.risk.currency === "High" ? "🔴" : selected.risk.currency === "Low" ? "🟢" : "🟡"}</span><span style={styles.riskText}>Currency Risk: <strong>{selected.risk.currency}</strong></span></div>
+                <div style={styles.riskItem}><span style={{ fontSize: "20px" }}>{selected.risk.energy === "High" ? "🔴" : selected.risk.energy === "Low" ? "🟢" : "🟡"}</span><span style={styles.riskText}>Energy Price Risk: <strong>{selected.risk.energy}</strong></span></div>
               </div>
             </div>
 
