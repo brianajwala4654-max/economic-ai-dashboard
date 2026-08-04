@@ -1,0 +1,83 @@
+* THE EFFECTS OF EXTERNAL SHOCKS ON KENYA'S AGRICULTURAL SECTOR
+* Evidence from Quarterly Data (2016-2023)
+* Chapter 4: Data Analysis Do-File
+version 17
+clear all
+set more off
+
+* 1. IMPORT DATA
+cd "C:\Users\Admin\OneDrive\Desktop\Research"
+import excel "Agriculture & External shocks data.xlsx", sheet(" Data") firstrow clear
+
+describe
+
+
+* 2. RENAME VARIABLES
+
+rename AgriGDPGrowth agdpgr
+rename TradeBalanceAgriPercent tb
+rename FDIPercentGDP fdi
+rename Exchange_Rate_Volatility exr
+rename InflationCPI inf
+rename ElectionDummy election
+
+
+* 3. SET UP TIME SERIES
+
+gen qdate = quarterly(Quarter, "YQ")
+format qdate %tq
+tsset qdate
+
+* Visual check of the dependent variable
+tsline agdpgr, title("Agricultural GDP Growth, 2016Q1-2023Q4")
+
+
+* 4. STATIONARITY (UNIT ROOT) TESTS - ADF, LEVEL
+
+dfuller agdpgr, trend lags(1)
+dfuller tb, trend lags(1)
+dfuller fdi, trend lags(1)
+dfuller exr, trend lags(1)
+dfuller inf, trend lags(1)
+
+* agdpgr and inf are non-stationary at level -> first-difference and re-test
+gen d_agdpgr = D.agdpgr
+gen d_inf    = D.inf
+
+dfuller d_agdpgr, lags(1)
+dfuller d_inf, lags(1)
+
+
+* 5. DESCRIPTIVE STATISTICS
+
+summarize agdpgr d_agdpgr tb fdi exr d_inf
+
+* 6. CORRELATION MATRIX (EXPLANATORY VARIABLES)
+
+correlate tb fdi exr d_inf
+
+
+* 7. OLS REGRESSION
+*    Dependent variable: d_agdpgr (first-differenced, since agdpgr is I(1))
+*    Regressors: tb, fdi, exr (stationary at level) and d_inf (first-differenced)
+
+regress d_agdpgr tb fdi exr d_inf
+
+* 8. MULTICOLLINEARITY TEST (VIF)
+
+estat vif
+
+
+* 9. POST-ESTIMATION DIAGNOSTIC TESTS
+
+predict resid, resid
+
+* Autocorrelation
+estat dwatson
+estat bgodfrey, lags(1 2)
+
+* Heteroskedasticity
+estat hettest
+
+* Normality of residuals (skewness-kurtosis test, used in place of Jarque-Bera)
+sktest resid
