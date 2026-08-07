@@ -43,6 +43,15 @@ const styles = {
   countryBtn: { padding: "8px 20px", borderRadius: "8px", border: "none", cursor: "pointer", fontWeight: "600", fontSize: "13px" },
 };
 
+const getRate = (exchangeRate, code, decimals = 2) => {
+  if (!exchangeRate || !exchangeRate[code]) return "...";
+  return decimals === 0
+    ? exchangeRate[code].toFixed(0)
+    : exchangeRate[code].toFixed(decimals);
+};
+
+const riskIcon = (level) => level === "High" ? "🔴" : level === "Low" ? "🟢" : "🟡";
+
 export default function App() {
   const [inflationData, setInflationData] = useState([]);
   const [exchangeRate, setExchangeRate] = useState(null);
@@ -77,9 +86,9 @@ export default function App() {
   }));
 
   const exchangeChartData = exchangeRate ? [
-    { currency: "KES", rate: exchangeRate.KES },
-    { currency: "UGX", rate: exchangeRate.UGX / 10 },
-    { currency: "TZS", rate: exchangeRate.TZS / 10 },
+    { currency: "KES", rate: parseFloat(getRate(exchangeRate, "KES", 2)) },
+    { currency: "UGX", rate: parseFloat(getRate(exchangeRate, "UGX", 0)) / 10 },
+    { currency: "TZS", rate: parseFloat(getRate(exchangeRate, "TZS", 0)) / 10 },
   ] : [];
 
   const unemploymentData = [
@@ -97,42 +106,32 @@ export default function App() {
 
   const countryData = {
     Kenya: {
-      flag: "🇰🇪",
-      currency: "KES",
-      currencyName: "Kenya Shilling",
-      rate: exchangeRate ? exchangeRate.KES.toFixed(2) : "...",
+      flag: "🇰🇪", currency: "KES", currencyName: "Kenya Shilling",
+      rate: getRate(exchangeRate, "KES", 2),
       unemployment: "7.1%",
       risk: { inflation: "Medium", growth: "Low", currency: "Medium", energy: "High" },
     },
     Uganda: {
-      flag: "🇺🇬",
-      currency: "UGX",
-      currencyName: "Uganda Shilling",
-      rate: exchangeRate ? exchangeRate.UGX.toFixed(0) : "...",
+      flag: "🇺🇬", currency: "UGX", currencyName: "Uganda Shilling",
+      rate: getRate(exchangeRate, "UGX", 0),
       unemployment: "9.2%",
       risk: { inflation: "High", growth: "Medium", currency: "High", energy: "High" },
     },
     Tanzania: {
-      flag: "🇹🇿",
-      currency: "TZS",
-      currencyName: "Tanzania Shilling",
-      rate: exchangeRate ? exchangeRate.TZS.toFixed(0) : "...",
+      flag: "🇹🇿", currency: "TZS", currencyName: "Tanzania Shilling",
+      rate: getRate(exchangeRate, "TZS", 0),
       unemployment: "10.3%",
       risk: { inflation: "Medium", growth: "Medium", currency: "Medium", energy: "High" },
     },
     Rwanda: {
-      flag: "🇷🇼",
-      currency: "RWF",
-      currencyName: "Rwanda Franc",
-      rate: exchangeRate ? exchangeRate.RWF.toFixed(0) : "...",
+      flag: "🇷🇼", currency: "RWF", currencyName: "Rwanda Franc",
+      rate: getRate(exchangeRate, "RWF", 0),
       unemployment: "15.4%",
       risk: { inflation: "Low", growth: "Low", currency: "Low", energy: "Medium" },
     },
     Ethiopia: {
-      flag: "🇪🇹",
-      currency: "ETB",
-      currencyName: "Ethiopian Birr",
-      rate: exchangeRate ? exchangeRate.ETB.toFixed(2) : "...",
+      flag: "🇪🇹", currency: "ETB", currencyName: "Ethiopian Birr",
+      rate: getRate(exchangeRate, "ETB", 2),
       unemployment: "19.1%",
       risk: { inflation: "High", growth: "Medium", currency: "High", energy: "High" },
     },
@@ -149,8 +148,8 @@ export default function App() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           inflation: latestInflation,
-          exchangeKES: exchangeRate?.KES?.toFixed(2),
-          exchangeUGX: exchangeRate?.UGX?.toFixed(0),
+          exchangeKES: getRate(exchangeRate, "KES", 2),
+          exchangeUGX: getRate(exchangeRate, "UGX", 0),
           unemployment: selected.unemployment.replace("%", ""),
           country: country,
         }),
@@ -179,33 +178,32 @@ export default function App() {
     doc.setTextColor(30, 30, 30);
     doc.text("Economic Indicators", 20, 56);
     doc.setFontSize(11);
-    doc.text(`Inflation (CPI):         ${latestInflation}`, 20, 68);
-    doc.text(`Unemployment:            ${selected.unemployment}`, 20, 78);
-    doc.text(`USD / ${selected.currency}:              ${selected.rate}`, 20, 88);
-    doc.text(`USD / TZS:               ${exchangeRate ? exchangeRate.TZS.toFixed(0) : "N/A"}`, 20, 98);
-    doc.line(20, 106, 190, 106);
+    doc.text(`Inflation (CPI):     ${latestInflation}`, 20, 68);
+    doc.text(`Unemployment:        ${selected.unemployment}`, 20, 78);
+    doc.text(`USD / ${selected.currency}:          ${selected.rate}`, 20, 88);
+    doc.line(20, 96, 190, 96);
     doc.setFontSize(14);
-    doc.text("Risk Assessment", 20, 118);
+    doc.text("Risk Assessment", 20, 108);
     doc.setFontSize(11);
-    doc.text(`Inflation Risk:     ${selected.risk.inflation}`, 20, 130);
-    doc.text(`Growth Risk:        ${selected.risk.growth}`, 20, 140);
-    doc.text(`Currency Risk:      ${selected.risk.currency}`, 20, 150);
-    doc.text(`Energy Price Risk:  ${selected.risk.energy}`, 20, 160);
-    doc.line(20, 168, 190, 168);
+    doc.text(`Inflation Risk:     ${selected.risk.inflation}`, 20, 120);
+    doc.text(`Growth Risk:        ${selected.risk.growth}`, 20, 130);
+    doc.text(`Currency Risk:      ${selected.risk.currency}`, 20, 140);
+    doc.text(`Energy Price Risk:  ${selected.risk.energy}`, 20, 150);
+    doc.line(20, 158, 190, 158);
     if (report) {
       doc.setFontSize(14);
-      doc.text("AI Economic Analysis", 20, 180);
+      doc.text("AI Economic Analysis", 20, 170);
       doc.setFontSize(10);
       const lines = doc.splitTextToSize(report, 170);
-      doc.text(lines, 20, 192);
+      doc.text(lines, 20, 182);
     } else {
       doc.setFontSize(10);
       doc.setTextColor(150);
-      doc.text("No AI report generated yet. Click 'Generate AI Report' first.", 20, 180);
+      doc.text("No AI report generated yet.", 20, 170);
     }
     doc.setFontSize(9);
     doc.setTextColor(150);
-    doc.text("NexusEconomics v2.0 — Live Economic Intelligence — Developed by Brian Otieno", 20, 285);
+    doc.text("NexusEconomics v2.0 — Developed by Brian Otieno", 20, 285);
     doc.save(`NexusEconomics_${country}_Report.pdf`);
   }
 
@@ -250,19 +248,10 @@ export default function App() {
           <h1 style={styles.headerTitle}>Economic Dashboard</h1>
           <p style={styles.headerSub}>Real-time economic intelligence for East Africa</p>
           <span style={styles.badge}>🔴 Live Data</span>
-
-          {/* COUNTRY SELECTOR */}
           <div style={{ marginTop: "16px", display: "flex", gap: "10px", flexWrap: "wrap" }}>
             {Object.keys(countryData).map((c) => (
-              <button
-                key={c}
-                onClick={() => { setCountry(c); setReport(""); }}
-                style={{
-                  ...styles.countryBtn,
-                  backgroundColor: country === c ? "#0ea5e9" : "#1e293b",
-                  color: country === c ? "white" : "#64748b",
-                }}
-              >
+              <button key={c} onClick={() => { setCountry(c); setReport(""); }}
+                style={{ ...styles.countryBtn, backgroundColor: country === c ? "#0ea5e9" : "#1e293b", color: country === c ? "white" : "#64748b" }}>
                 {countryData[c].flag} {c}
               </button>
             ))}
@@ -273,7 +262,6 @@ export default function App() {
           <div style={{ color: "#64748b", fontSize: "16px", marginTop: "40px" }}>Loading live data...</div>
         ) : (
           <>
-            {/* KPI CARDS */}
             <div style={styles.grid}>
               <div style={styles.card}>
                 <div style={styles.cardLabel}>Inflation (CPI)</div>
@@ -295,13 +283,12 @@ export default function App() {
               </div>
               <div style={styles.card}>
                 <div style={styles.cardLabel}>USD / TZS</div>
-                <div style={styles.cardValue}>{exchangeRate ? exchangeRate.TZS.toFixed(0) : "..."}</div>
+                <div style={styles.cardValue}>{getRate(exchangeRate, "TZS", 0)}</div>
                 <div style={styles.cardSub}>Tanzania Shilling</div>
                 <div style={styles.cardTrend}>↑ Live Rate</div>
               </div>
             </div>
 
-            {/* TWO CHARTS */}
             <div style={styles.twoCol}>
               <div style={styles.section}>
                 <div style={styles.sectionTitle}>📈 Inflation Trend (CPI) — 12 Months</div>
@@ -324,7 +311,7 @@ export default function App() {
                     <BarChart data={unemploymentData}>
                       <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
                       <XAxis dataKey="year" stroke="#64748b" tick={{ fontSize: 11 }} />
-                      <YAxis stroke="#64748b" tick={{ fontSize: 11 }} domain={[6, 9]} />
+                      <YAxis stroke="#64748b" tick={{ fontSize: 11 }} domain={[6, 22]} />
                       <Tooltip {...tooltipStyle} />
                       <Bar dataKey="rate" fill="#818cf8" radius={[6, 6, 0, 0]} />
                     </BarChart>
@@ -333,7 +320,6 @@ export default function App() {
               </div>
             </div>
 
-            {/* EXCHANGE RATE CHART */}
             <div style={styles.section}>
               <div style={styles.sectionTitle}>💱 East Africa Exchange Rates vs USD</div>
               <p style={{ color: "#64748b", fontSize: "12px", marginBottom: "16px" }}>UGX and TZS divided by 10 for scale comparison</p>
@@ -350,7 +336,6 @@ export default function App() {
               </div>
             </div>
 
-            {/* NEWS */}
             <div style={styles.section}>
               <div style={styles.sectionTitle}>📰 Latest {country} Economic News</div>
               {news.length > 0 ? news.map((article, index) => (
@@ -361,7 +346,6 @@ export default function App() {
               )) : <p style={{ color: "#64748b" }}>No news available.</p>}
             </div>
 
-            {/* AI REPORT */}
             <div style={styles.section}>
               <div style={styles.sectionTitle}>🤖 AI Economic Analysis — {country}</div>
               <p style={{ color: "#64748b", fontSize: "13px", marginBottom: "16px" }}>Powered by Claude AI — generates real-time economic insights from live data</p>
@@ -369,21 +353,18 @@ export default function App() {
                 <button onClick={generateReport} disabled={reportLoading} style={reportLoading ? styles.btnDisabled : styles.btn}>
                   {reportLoading ? "⏳ Generating Report..." : "Generate AI Report"}
                 </button>
-                <button onClick={downloadPDF} style={styles.btnGreen}>
-                  ⬇ Download PDF
-                </button>
+                <button onClick={downloadPDF} style={styles.btnGreen}>⬇ Download PDF</button>
               </div>
               {report && <div style={styles.report}>{report}</div>}
             </div>
 
-            {/* RISK MONITOR */}
             <div style={styles.section}>
               <div style={styles.sectionTitle}>⚠️ Economic Risk Monitor — {country}</div>
               <div style={styles.riskGrid}>
-                <div style={styles.riskItem}><span style={{ fontSize: "20px" }}>{selected.risk.inflation === "High" ? "🔴" : selected.risk.inflation === "Low" ? "🟢" : "🟡"}</span><span style={styles.riskText}>Inflation Risk: <strong>{selected.risk.inflation}</strong></span></div>
-                <div style={styles.riskItem}><span style={{ fontSize: "20px" }}>{selected.risk.growth === "Low" ? "🟢" : selected.risk.growth === "High" ? "🔴" : "🟡"}</span><span style={styles.riskText}>Growth Risk: <strong>{selected.risk.growth}</strong></span></div>
-                <div style={styles.riskItem}><span style={{ fontSize: "20px" }}>{selected.risk.currency === "High" ? "🔴" : selected.risk.currency === "Low" ? "🟢" : "🟡"}</span><span style={styles.riskText}>Currency Risk: <strong>{selected.risk.currency}</strong></span></div>
-                <div style={styles.riskItem}><span style={{ fontSize: "20px" }}>{selected.risk.energy === "High" ? "🔴" : selected.risk.energy === "Low" ? "🟢" : "🟡"}</span><span style={styles.riskText}>Energy Price Risk: <strong>{selected.risk.energy}</strong></span></div>
+                <div style={styles.riskItem}><span style={{ fontSize: "20px" }}>{riskIcon(selected.risk.inflation)}</span><span style={styles.riskText}>Inflation Risk: <strong>{selected.risk.inflation}</strong></span></div>
+                <div style={styles.riskItem}><span style={{ fontSize: "20px" }}>{riskIcon(selected.risk.growth)}</span><span style={styles.riskText}>Growth Risk: <strong>{selected.risk.growth}</strong></span></div>
+                <div style={styles.riskItem}><span style={{ fontSize: "20px" }}>{riskIcon(selected.risk.currency)}</span><span style={styles.riskText}>Currency Risk: <strong>{selected.risk.currency}</strong></span></div>
+                <div style={styles.riskItem}><span style={{ fontSize: "20px" }}>{riskIcon(selected.risk.energy)}</span><span style={styles.riskText}>Energy Price Risk: <strong>{selected.risk.energy}</strong></span></div>
               </div>
             </div>
 
