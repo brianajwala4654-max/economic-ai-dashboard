@@ -45,12 +45,38 @@ const styles = {
 
 const getRate = (exchangeRate, code, decimals = 2) => {
   if (!exchangeRate || !exchangeRate[code]) return "...";
-  return decimals === 0
-    ? exchangeRate[code].toFixed(0)
-    : exchangeRate[code].toFixed(decimals);
+  return decimals === 0 ? exchangeRate[code].toFixed(0) : exchangeRate[code].toFixed(decimals);
 };
 
 const riskIcon = (level) => level === "High" ? "🔴" : level === "Low" ? "🟢" : "🟡";
+
+const countryMeta = {
+  Kenya: {
+    flag: "🇰🇪", currency: "KES", currencyName: "Kenya Shilling",
+    unemployment: "7.1%",
+    risk: { inflation: "Medium", growth: "Low", currency: "Medium", energy: "High" },
+  },
+  Uganda: {
+    flag: "🇺🇬", currency: "UGX", currencyName: "Uganda Shilling",
+    unemployment: "9.2%",
+    risk: { inflation: "High", growth: "Medium", currency: "High", energy: "High" },
+  },
+  Tanzania: {
+    flag: "🇹🇿", currency: "TZS", currencyName: "Tanzania Shilling",
+    unemployment: "10.3%",
+    risk: { inflation: "Medium", growth: "Medium", currency: "Medium", energy: "High" },
+  },
+  Rwanda: {
+    flag: "🇷🇼", currency: "RWF", currencyName: "Rwanda Franc",
+    unemployment: "15.4%",
+    risk: { inflation: "Low", growth: "Low", currency: "Low", energy: "Medium" },
+  },
+  Ethiopia: {
+    flag: "🇪🇹", currency: "ETB", currencyName: "Ethiopian Birr",
+    unemployment: "19.1%",
+    risk: { inflation: "High", growth: "Medium", currency: "High", energy: "High" },
+  },
+};
 
 export default function App() {
   const [inflationData, setInflationData] = useState([]);
@@ -64,9 +90,12 @@ export default function App() {
 
   useEffect(() => {
     async function fetchData() {
+      setLoading(true);
       try {
         const [inflation, exchange, newsData] = await Promise.all([
-          getInflationData(), getExchangeRate(), getNews(),
+          getInflationData(country),
+          getExchangeRate(),
+          getNews(country),
         ]);
         setInflationData(inflation);
         setExchangeRate(exchange);
@@ -78,7 +107,7 @@ export default function App() {
       }
     }
     fetchData();
-  }, []);
+  }, [country]);
 
   const chartData = inflationData.slice(-12).map((obs) => ({
     month: obs.date.slice(0, 7),
@@ -91,53 +120,27 @@ export default function App() {
     { currency: "TZS", rate: parseFloat(getRate(exchangeRate, "TZS", 0)) / 10 },
   ] : [];
 
-  const unemploymentData = [
-    { year: "2021", rate: 7.9 },
-    { year: "2022", rate: 7.4 },
-    { year: "2023", rate: 7.3 },
-    { year: "2024", rate: 7.2 },
-    { year: "2025", rate: 7.1 },
-    { year: "2026", rate: 7.1 },
-  ];
+  const unemploymentData = {
+    Kenya: [{ year: "2021", rate: 7.9 }, { year: "2022", rate: 7.4 }, { year: "2023", rate: 7.3 }, { year: "2024", rate: 7.2 }, { year: "2025", rate: 7.1 }, { year: "2026", rate: 7.1 }],
+    Uganda: [{ year: "2021", rate: 9.8 }, { year: "2022", rate: 9.5 }, { year: "2023", rate: 9.3 }, { year: "2024", rate: 9.2 }, { year: "2025", rate: 9.2 }, { year: "2026", rate: 9.2 }],
+    Tanzania: [{ year: "2021", rate: 10.8 }, { year: "2022", rate: 10.5 }, { year: "2023", rate: 10.4 }, { year: "2024", rate: 10.3 }, { year: "2025", rate: 10.3 }, { year: "2026", rate: 10.3 }],
+    Rwanda: [{ year: "2021", rate: 16.2 }, { year: "2022", rate: 15.9 }, { year: "2023", rate: 15.7 }, { year: "2024", rate: 15.5 }, { year: "2025", rate: 15.4 }, { year: "2026", rate: 15.4 }],
+    Ethiopia: [{ year: "2021", rate: 20.1 }, { year: "2022", rate: 19.8 }, { year: "2023", rate: 19.5 }, { year: "2024", rate: 19.3 }, { year: "2025", rate: 19.1 }, { year: "2026", rate: 19.1 }],
+  };
 
   const latestInflation = inflationData.length > 0
     ? parseFloat(inflationData[inflationData.length - 1].value).toFixed(1)
     : "...";
 
-  const countryData = {
-    Kenya: {
-      flag: "🇰🇪", currency: "KES", currencyName: "Kenya Shilling",
-      rate: getRate(exchangeRate, "KES", 2),
-      unemployment: "7.1%",
-      risk: { inflation: "Medium", growth: "Low", currency: "Medium", energy: "High" },
-    },
-    Uganda: {
-      flag: "🇺🇬", currency: "UGX", currencyName: "Uganda Shilling",
-      rate: getRate(exchangeRate, "UGX", 0),
-      unemployment: "9.2%",
-      risk: { inflation: "High", growth: "Medium", currency: "High", energy: "High" },
-    },
-    Tanzania: {
-      flag: "🇹🇿", currency: "TZS", currencyName: "Tanzania Shilling",
-      rate: getRate(exchangeRate, "TZS", 0),
-      unemployment: "10.3%",
-      risk: { inflation: "Medium", growth: "Medium", currency: "Medium", energy: "High" },
-    },
-    Rwanda: {
-      flag: "🇷🇼", currency: "RWF", currencyName: "Rwanda Franc",
-      rate: getRate(exchangeRate, "RWF", 0),
-      unemployment: "15.4%",
-      risk: { inflation: "Low", growth: "Low", currency: "Low", energy: "Medium" },
-    },
-    Ethiopia: {
-      flag: "🇪🇹", currency: "ETB", currencyName: "Ethiopian Birr",
-      rate: getRate(exchangeRate, "ETB", 2),
-      unemployment: "19.1%",
-      risk: { inflation: "High", growth: "Medium", currency: "High", energy: "High" },
-    },
-  };
+  const selected = countryMeta[country];
 
-  const selected = countryData[country];
+  const countryData = {};
+  Object.keys(countryMeta).forEach(c => {
+    countryData[c] = {
+      ...countryMeta[c],
+      rate: getRate(exchangeRate, countryMeta[c].currency, countryMeta[c].currency === "KES" ? 2 : 0),
+    };
+  });
 
   async function generateReport() {
     setReportLoading(true);
@@ -178,9 +181,9 @@ export default function App() {
     doc.setTextColor(30, 30, 30);
     doc.text("Economic Indicators", 20, 56);
     doc.setFontSize(11);
-    doc.text(`Inflation (CPI):     ${latestInflation}`, 20, 68);
+    doc.text(`Inflation Rate:      ${latestInflation}%`, 20, 68);
     doc.text(`Unemployment:        ${selected.unemployment}`, 20, 78);
-    doc.text(`USD / ${selected.currency}:          ${selected.rate}`, 20, 88);
+    doc.text(`USD / ${selected.currency}:          ${countryData[country].rate}`, 20, 88);
     doc.line(20, 96, 190, 96);
     doc.setFontSize(14);
     doc.text("Risk Assessment", 20, 108);
@@ -225,7 +228,6 @@ export default function App() {
         <meta name="keywords" content="NexusEconomics, Kenya economy, economic intelligence, AI forecasting, inflation, exchange rate" />
       </Helmet>
 
-      {/* SIDEBAR */}
       <div style={styles.sidebar}>
         <div style={styles.logo}>
           NexusEconomics
@@ -242,32 +244,31 @@ export default function App() {
         </div>
       </div>
 
-      {/* MAIN */}
       <div style={styles.main}>
         <div>
           <h1 style={styles.headerTitle}>Economic Dashboard</h1>
           <p style={styles.headerSub}>Real-time economic intelligence for East Africa</p>
           <span style={styles.badge}>🔴 Live Data</span>
           <div style={{ marginTop: "16px", display: "flex", gap: "10px", flexWrap: "wrap" }}>
-            {Object.keys(countryData).map((c) => (
+            {Object.keys(countryMeta).map((c) => (
               <button key={c} onClick={() => { setCountry(c); setReport(""); }}
                 style={{ ...styles.countryBtn, backgroundColor: country === c ? "#0ea5e9" : "#1e293b", color: country === c ? "white" : "#64748b" }}>
-                {countryData[c].flag} {c}
+                {countryMeta[c].flag} {c}
               </button>
             ))}
           </div>
         </div>
 
         {loading ? (
-          <div style={{ color: "#64748b", fontSize: "16px", marginTop: "40px" }}>Loading live data...</div>
+          <div style={{ color: "#64748b", fontSize: "16px", marginTop: "40px" }}>Loading {country} data...</div>
         ) : (
           <>
             <div style={styles.grid}>
               <div style={styles.card}>
-                <div style={styles.cardLabel}>Inflation (CPI)</div>
-                <div style={styles.cardValue}>{latestInflation}</div>
-                <div style={styles.cardSub}>Latest CPI Index</div>
-                <div style={styles.cardTrend}>↑ FRED Data</div>
+                <div style={styles.cardLabel}>Inflation Rate</div>
+                <div style={styles.cardValue}>{latestInflation}%</div>
+                <div style={styles.cardSub}>{country} Latest Rate</div>
+                <div style={styles.cardTrend}>↑ Live Data</div>
               </div>
               <div style={styles.card}>
                 <div style={styles.cardLabel}>Unemployment</div>
@@ -277,7 +278,7 @@ export default function App() {
               </div>
               <div style={styles.card}>
                 <div style={styles.cardLabel}>USD / {selected.currency}</div>
-                <div style={styles.cardValue}>{selected.rate}</div>
+                <div style={styles.cardValue}>{countryData[country].rate}</div>
                 <div style={styles.cardSub}>{selected.currencyName}</div>
                 <div style={styles.cardTrend}>↑ Live Rate</div>
               </div>
@@ -291,7 +292,7 @@ export default function App() {
 
             <div style={styles.twoCol}>
               <div style={styles.section}>
-                <div style={styles.sectionTitle}>📈 Inflation Trend (CPI) — 12 Months</div>
+                <div style={styles.sectionTitle}>📈 Inflation Trend — {country}</div>
                 <div style={{ height: "250px" }}>
                   <ResponsiveContainer width="100%" height="100%">
                     <LineChart data={chartData}>
@@ -308,10 +309,10 @@ export default function App() {
                 <div style={styles.sectionTitle}>💹 Unemployment Trend — {country}</div>
                 <div style={{ height: "250px" }}>
                   <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={unemploymentData}>
+                    <BarChart data={unemploymentData[country]}>
                       <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
                       <XAxis dataKey="year" stroke="#64748b" tick={{ fontSize: 11 }} />
-                      <YAxis stroke="#64748b" tick={{ fontSize: 11 }} domain={[6, 22]} />
+                      <YAxis stroke="#64748b" tick={{ fontSize: 11 }} domain={["auto", "auto"]} />
                       <Tooltip {...tooltipStyle} />
                       <Bar dataKey="rate" fill="#818cf8" radius={[6, 6, 0, 0]} />
                     </BarChart>
@@ -343,7 +344,9 @@ export default function App() {
                   <a href={article.url} target="_blank" rel="noreferrer" style={styles.newsLink}>{article.title}</a>
                   <p style={styles.newsDesc}>{article.description}</p>
                 </div>
-              )) : <p style={{ color: "#64748b" }}>No news available.</p>}
+              )) : (
+                <p style={{ color: "#64748b" }}>No news available at the moment. Try again later.</p>
+              )}
             </div>
 
             <div style={styles.section}>
