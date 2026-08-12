@@ -1,29 +1,12 @@
 const BASE_URL = 'https://nexus-economics.onrender.com';
 
-export async function getInflationData() {
+export async function getInflationData(country = 'Kenya') {
   try {
-    const response = await fetch(`${BASE_URL}/api/inflation`);
+    const response = await fetch(`${BASE_URL}/api/inflation/${country}`);
     const data = await response.json();
-    return data.observations.map(obs => ({
-      date: obs.date,
-      value: obs.value
-    }));
+    return data.observations || [];
   } catch (error) {
     console.error('Error fetching inflation data:', error);
-    return [];
-  }
-}
-
-export async function getGDPData() {
-  try {
-    const response = await fetch(`${BASE_URL}/api/gdp`);
-    const data = await response.json();
-    return data.observations.map(obs => ({
-      date: obs.date,
-      value: obs.value
-    }));
-  } catch (error) {
-    console.error('Error fetching GDP data:', error);
     return [];
   }
 }
@@ -35,7 +18,9 @@ export async function getExchangeRate() {
     return {
       KES: data.conversion_rates.KES,
       UGX: data.conversion_rates.UGX,
-      TZS: data.conversion_rates.TZS
+      TZS: data.conversion_rates.TZS,
+      RWF: data.conversion_rates.RWF,
+      ETB: data.conversion_rates.ETB,
     };
   } catch (error) {
     console.error('Error fetching exchange rate:', error);
@@ -43,11 +28,11 @@ export async function getExchangeRate() {
   }
 }
 
-export async function getNews() {
+export async function getNews(country = 'Kenya') {
   try {
-    const response = await fetch(`${BASE_URL}/api/news`);
+    const response = await fetch(`${BASE_URL}/api/news?country=${country}`);
     const data = await response.json();
-    return data.articles.slice(0, 5);
+    return (data.articles || []).slice(0, 5);
   } catch (error) {
     console.error('Error fetching news:', error);
     return [];
