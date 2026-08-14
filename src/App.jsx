@@ -1,352 +1,1621 @@
 import { useState, useEffect } from "react";
 import { Helmet } from "react-helmet";
 import jsPDF from "jspdf";
-import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
-import { getInflationData, getExchangeRate, getNews } from "./api";
 
-const BACKEND_URL = "https://nexus-economics.onrender.com";
+import {
+  LineChart,
+  Line,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  AreaChart,
+  Area,
+} from "recharts";
+
+import {
+  getInflationData,
+  getExchangeRate,
+  getNews,
+  getEconomicIndicators,
+} from "./api";
+
+const BACKEND_URL =
+  "https://nexus-economics.onrender.com";
+
+const countries = {
+  Kenya: {
+    flag: "🇰🇪",
+    currency: "KES",
+    currencyName: "Kenyan Shilling",
+  },
+
+  Uganda: {
+    flag: "🇺🇬",
+    currency: "UGX",
+    currencyName: "Ugandan Shilling",
+  },
+
+  Tanzania: {
+    flag: "🇹🇿",
+    currency: "TZS",
+    currencyName: "Tanzanian Shilling",
+  },
+
+  Rwanda: {
+    flag: "🇷🇼",
+    currency: "RWF",
+    currencyName: "Rwandan Franc",
+  },
+
+  Ethiopia: {
+    flag: "🇪🇹",
+    currency: "ETB",
+    currencyName: "Ethiopian Birr",
+  },
+};
 
 const styles = {
-  app: { display: "flex", minHeight: "100vh", fontFamily: "'Segoe UI', sans-serif", backgroundColor: "#0f172a" },
-  sidebar: { width: "260px", backgroundColor: "#1e293b", color: "white", padding: "30px 20px", display: "flex", flexDirection: "column", gap: "8px", borderRight: "1px solid #334155" },
-  logo: { fontSize: "22px", fontWeight: "800", color: "#38bdf8", marginBottom: "30px", letterSpacing: "-0.5px" },
-  logoSub: { fontSize: "11px", color: "#64748b", fontWeight: "400", display: "block", marginTop: "2px" },
-  navItem: { padding: "12px 16px", borderRadius: "10px", cursor: "pointer", fontSize: "14px", color: "#94a3b8", display: "flex", alignItems: "center", gap: "10px" },
-  navItemActive: { backgroundColor: "#0ea5e9", color: "white" },
-  main: { flex: 1, padding: "40px", overflowY: "auto" },
-  headerTitle: { fontSize: "32px", fontWeight: "700", color: "white", margin: "0 0 6px 0" },
-  headerSub: { color: "#64748b", fontSize: "14px", margin: 0 },
-  badge: { display: "inline-block", backgroundColor: "#0ea5e910", color: "#38bdf8", border: "1px solid #0ea5e930", borderRadius: "20px", padding: "4px 12px", fontSize: "12px", marginTop: "8px" },
-  grid: { display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "20px", marginBottom: "28px", marginTop: "28px" },
-  card: { backgroundColor: "#1e293b", borderRadius: "16px", padding: "24px", border: "1px solid #334155" },
-  cardLabel: { fontSize: "12px", color: "#64748b", textTransform: "uppercase", letterSpacing: "1px", marginBottom: "8px" },
-  cardValue: { fontSize: "36px", fontWeight: "700", color: "white", margin: "0 0 4px 0" },
-  cardSub: { fontSize: "12px", color: "#64748b" },
-  cardTrend: { fontSize: "12px", color: "#22c55e", marginTop: "6px" },
-  section: { backgroundColor: "#1e293b", borderRadius: "16px", padding: "28px", border: "1px solid #334155", marginBottom: "24px" },
-  sectionTitle: { fontSize: "18px", fontWeight: "600", color: "white", marginBottom: "20px" },
-  newsItem: { padding: "16px 0", borderBottom: "1px solid #334155" },
-  newsLink: { color: "#38bdf8", fontWeight: "600", textDecoration: "none", fontSize: "14px" },
-  newsDesc: { color: "#64748b", fontSize: "13px", marginTop: "6px" },
-  btn: { backgroundColor: "#0ea5e9", color: "white", border: "none", padding: "12px 24px", borderRadius: "10px", cursor: "pointer", fontSize: "14px", fontWeight: "600" },
-  btnGreen: { backgroundColor: "#059669", color: "white", border: "none", padding: "12px 24px", borderRadius: "10px", cursor: "pointer", fontSize: "14px", fontWeight: "600" },
-  btnDisabled: { backgroundColor: "#1e3a4a", color: "#64748b", border: "none", padding: "12px 24px", borderRadius: "10px", cursor: "not-allowed", fontSize: "14px", fontWeight: "600" },
-  report: { backgroundColor: "#0f172a", borderRadius: "12px", padding: "20px", marginTop: "20px", color: "#cbd5e1", lineHeight: "1.8", fontSize: "14px", whiteSpace: "pre-line" },
-  riskGrid: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" },
-  riskItem: { backgroundColor: "#0f172a", borderRadius: "10px", padding: "16px", display: "flex", alignItems: "center", gap: "12px" },
-  riskText: { color: "#cbd5e1", fontSize: "14px" },
-  footer: { textAlign: "center", color: "#334155", fontSize: "13px", paddingTop: "20px", borderTop: "1px solid #1e293b", marginTop: "20px" },
-  twoCol: { display: "grid", gridTemplateColumns: "1fr 1fr", gap: "24px", marginBottom: "24px" },
-  countryBtn: { padding: "8px 20px", borderRadius: "8px", border: "none", cursor: "pointer", fontWeight: "600", fontSize: "13px" },
+  app: {
+    display: "flex",
+    minHeight: "100vh",
+    fontFamily: "'Segoe UI', sans-serif",
+    backgroundColor: "#0f172a",
+  },
+
+  sidebar: {
+    width: "250px",
+    backgroundColor: "#1e293b",
+    color: "white",
+    padding: "28px 18px",
+    display: "flex",
+    flexDirection: "column",
+    gap: "8px",
+    borderRight: "1px solid #334155",
+  },
+
+  logo: {
+    fontSize: "22px",
+    fontWeight: "800",
+    color: "#38bdf8",
+    marginBottom: "30px",
+  },
+
+  logoSub: {
+    display: "block",
+    fontSize: "11px",
+    color: "#64748b",
+    marginTop: "4px",
+  },
+
+  navItem: {
+    padding: "13px 15px",
+    borderRadius: "10px",
+    cursor: "pointer",
+    fontSize: "14px",
+    color: "#94a3b8",
+    display: "flex",
+    alignItems: "center",
+    gap: "10px",
+  },
+
+  navActive: {
+    backgroundColor: "#0ea5e9",
+    color: "white",
+  },
+
+  main: {
+    flex: 1,
+    padding: "38px",
+    overflowY: "auto",
+  },
+
+  title: {
+    fontSize: "32px",
+    fontWeight: "700",
+    color: "white",
+    margin: "0 0 6px",
+  },
+
+  subtitle: {
+    color: "#64748b",
+    fontSize: "14px",
+    margin: 0,
+  },
+
+  badge: {
+    display: "inline-block",
+    marginTop: "12px",
+    padding: "5px 12px",
+    borderRadius: "20px",
+    backgroundColor: "#082f49",
+    color: "#38bdf8",
+    border: "1px solid #075985",
+    fontSize: "12px",
+  },
+
+  grid: {
+    display: "grid",
+    gridTemplateColumns:
+      "repeat(auto-fit,minmax(210px,1fr))",
+    gap: "18px",
+    marginTop: "26px",
+    marginBottom: "25px",
+  },
+
+  card: {
+    backgroundColor: "#1e293b",
+    border: "1px solid #334155",
+    borderRadius: "16px",
+    padding: "22px",
+  },
+
+  cardLabel: {
+    fontSize: "11px",
+    textTransform: "uppercase",
+    letterSpacing: "1px",
+    color: "#64748b",
+    marginBottom: "8px",
+  },
+
+  cardValue: {
+    fontSize: "29px",
+    fontWeight: "700",
+    color: "white",
+  },
+
+  cardSub: {
+    fontSize: "12px",
+    color: "#64748b",
+    marginTop: "6px",
+  },
+
+  trend: {
+    marginTop: "9px",
+    fontSize: "12px",
+    color: "#22c55e",
+  },
+
+  section: {
+    backgroundColor: "#1e293b",
+    border: "1px solid #334155",
+    borderRadius: "16px",
+    padding: "25px",
+    marginBottom: "22px",
+  },
+
+  sectionTitle: {
+    fontSize: "18px",
+    fontWeight: "600",
+    color: "white",
+    marginBottom: "20px",
+  },
+
+  twoCol: {
+    display: "grid",
+    gridTemplateColumns: "1fr 1fr",
+    gap: "22px",
+  },
+
+  button: {
+    backgroundColor: "#0ea5e9",
+    border: "none",
+    color: "white",
+    padding: "11px 20px",
+    borderRadius: "9px",
+    cursor: "pointer",
+    fontWeight: "600",
+  },
+
+  greenButton: {
+    backgroundColor: "#059669",
+    border: "none",
+    color: "white",
+    padding: "11px 20px",
+    borderRadius: "9px",
+    cursor: "pointer",
+    fontWeight: "600",
+  },
+
+  darkButton: {
+    backgroundColor: "#334155",
+    border: "none",
+    color: "white",
+    padding: "11px 18px",
+    borderRadius: "9px",
+    cursor: "pointer",
+  },
+
+  select: {
+    width: "100%",
+    backgroundColor: "#0f172a",
+    color: "white",
+    border: "1px solid #334155",
+    borderRadius: "9px",
+    padding: "12px",
+    marginTop: "8px",
+  },
+
+  report: {
+    backgroundColor: "#0f172a",
+    borderRadius: "12px",
+    padding: "20px",
+    color: "#cbd5e1",
+    lineHeight: "1.8",
+    marginTop: "20px",
+    whiteSpace: "pre-line",
+  },
+
+  footer: {
+    textAlign: "center",
+    color: "#475569",
+    fontSize: "12px",
+    padding: "20px",
+  },
 };
 
-const getRate = (exchangeRate, code, decimals = 2) => {
-  if (!exchangeRate || !exchangeRate[code]) return "...";
-  return decimals === 0 ? exchangeRate[code].toFixed(0) : exchangeRate[code].toFixed(decimals);
-};
+function formatValue(value, decimals = 1) {
+  if (
+    value === null ||
+    value === undefined ||
+    Number.isNaN(Number(value))
+  ) {
+    return "...";
+  }
 
-const riskIcon = (level) => level === "High" ? "🔴" : level === "Low" ? "🟢" : "🟡";
+  return Number(value).toFixed(decimals);
+}
 
-const countryMeta = {
-  Kenya:    { flag: "🇰🇪", currency: "KES", currencyName: "Kenya Shilling",    unemployment: "5.7%", risk: { inflation: "Medium", growth: "Low",    currency: "Medium", energy: "High"   } },
-  Uganda:   { flag: "🇺🇬", currency: "UGX", currencyName: "Uganda Shilling",   unemployment: "3.4%", risk: { inflation: "Medium", growth: "Medium", currency: "Medium", energy: "High"   } },
-  Tanzania: { flag: "🇹🇿", currency: "TZS", currencyName: "Tanzania Shilling", unemployment: "2.6%", risk: { inflation: "Medium", growth: "Medium", currency: "Medium", energy: "High"   } },
-  Rwanda:   { flag: "🇷🇼", currency: "RWF", currencyName: "Rwanda Franc",      unemployment: "14.3%", risk: { inflation: "Low",   growth: "Low",    currency: "Low",    energy: "Medium" } },
-  Ethiopia: { flag: "🇪🇹", currency: "ETB", currencyName: "Ethiopian Birr",    unemployment: "3.4%", risk: { inflation: "High",   growth: "Medium", currency: "High",   energy: "High"   } },
-};
+function latestValue(data) {
+  if (!data || data.length === 0) {
+    return null;
+  }
 
-const unemploymentTrends = {
-  Kenya:    [{ year: "2021", rate: 6.2 }, { year: "2022", rate: 5.9 }, { year: "2023", rate: 5.8 }, { year: "2024", rate: 5.7 }, { year: "2025", rate: 5.7 }, { year: "2026", rate: 5.7 }],
-  Uganda:   [{ year: "2021", rate: 3.9 }, { year: "2022", rate: 3.7 }, { year: "2023", rate: 3.5 }, { year: "2024", rate: 3.4 }, { year: "2025", rate: 3.4 }, { year: "2026", rate: 3.4 }],
-  Tanzania: [{ year: "2021", rate: 3.1 }, { year: "2022", rate: 2.9 }, { year: "2023", rate: 2.7 }, { year: "2024", rate: 2.6 }, { year: "2025", rate: 2.6 }, { year: "2026", rate: 2.6 }],
-  Rwanda:   [{ year: "2021", rate: 15.1 }, { year: "2022", rate: 14.8 }, { year: "2023", rate: 14.6 }, { year: "2024", rate: 14.4 }, { year: "2025", rate: 14.3 }, { year: "2026", rate: 14.3 }],
-  Ethiopia: [{ year: "2021", rate: 3.8 }, { year: "2022", rate: 3.6 }, { year: "2023", rate: 3.5 }, { year: "2024", rate: 3.4 }, { year: "2025", rate: 3.4 }, { year: "2026", rate: 3.4 }],
-};
+  return data[data.length - 1]?.value;
+}
+
+function prepareSeries(data) {
+  if (!Array.isArray(data)) return [];
+
+  return data.map((item) => ({
+    year: item.year || item.date,
+    value: Number(item.value),
+  }));
+}
 
 export default function App() {
-  const [inflationData, setInflationData] = useState([]);
-  const [exchangeRate, setExchangeRate] = useState(null);
-  const [news, setNews] = useState([]);
-  const [report, setReport] = useState("");
-  const [loading, setLoading] = useState(true);
-  const [reportLoading, setReportLoading] = useState(false);
-  const [activeNav, setActiveNav] = useState("Dashboard");
-  const [country, setCountry] = useState("Kenya");
+  const [activeNav, setActiveNav] =
+    useState("Dashboard");
+
+  const [country, setCountry] =
+    useState("Kenya");
+
+  const [inflationData, setInflationData] =
+    useState([]);
+
+  const [economicData, setEconomicData] =
+    useState({
+      gdpGrowth: [],
+      unemployment: [],
+      inflation: [],
+    });
+
+  const [exchangeRate, setExchangeRate] =
+    useState(null);
+
+  const [news, setNews] =
+    useState([]);
+
+  const [loading, setLoading] =
+    useState(true);
+
+  const [reportLoading, setReportLoading] =
+    useState(false);
+
+  const [report, setReport] =
+    useState("");
+
+  const [autoRefresh, setAutoRefresh] =
+    useState(false);
+
+  const [lastUpdated, setLastUpdated] =
+    useState(null);
+
+  const selected = countries[country];
 
   useEffect(() => {
-    async function fetchData() {
-      setLoading(true);
-      try {
-        const [inflation, exchange, newsData] = await Promise.all([
-          getInflationData(country),
-          getExchangeRate(),
-          getNews(country),
-        ]);
-        setInflationData(inflation);
-        setExchangeRate(exchange);
-        setNews(newsData);
-      } catch (error) {
-        console.error("Error loading data:", error);
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchData();
+    loadData();
   }, [country]);
 
-  const chartData = inflationData.map((obs) => ({
-    month: obs.date,
-    inflation: parseFloat(obs.value),
-  }));
+  useEffect(() => {
+    if (!autoRefresh) return;
 
-  const exchangeChartData = exchangeRate ? [
-    { currency: "KES", rate: parseFloat(getRate(exchangeRate, "KES", 2)) },
-    { currency: "UGX", rate: parseFloat(getRate(exchangeRate, "UGX", 0)) / 10 },
-    { currency: "TZS", rate: parseFloat(getRate(exchangeRate, "TZS", 0)) / 10 },
-  ] : [];
+    const interval = setInterval(
+      loadData,
+      5 * 60 * 1000
+    );
 
-  const latestInflation = inflationData.length > 0
-    ? parseFloat(inflationData[inflationData.length - 1].value).toFixed(1)
-    : "...";
+    return () => clearInterval(interval);
+  }, [autoRefresh, country]);
 
-  const selected = countryMeta[country];
-  const currencyDecimals = selected.currency === "KES" || selected.currency === "ETB" ? 2 : 0;
+  async function loadData() {
+    setLoading(true);
+
+    try {
+      const [
+        inflation,
+        exchange,
+        newsData,
+        indicators,
+      ] = await Promise.all([
+        getInflationData(country),
+        getExchangeRate(),
+        getNews(country),
+        getEconomicIndicators(country),
+      ]);
+
+      setInflationData(
+        Array.isArray(inflation)
+          ? inflation
+          : []
+      );
+
+      setExchangeRate(exchange || {});
+
+      setNews(
+        Array.isArray(newsData)
+          ? newsData
+          : []
+      );
+
+      setEconomicData(
+        indicators || {
+          gdpGrowth: [],
+          unemployment: [],
+          inflation: [],
+        }
+      );
+
+      setLastUpdated(new Date());
+    } catch (error) {
+      console.error(
+        "NexusEconomics error:",
+        error
+      );
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  const gdpSeries = prepareSeries(
+    economicData.gdpGrowth
+  );
+
+  const unemploymentSeries =
+    prepareSeries(
+      economicData.unemployment
+    );
+
+  const worldBankInflation =
+    prepareSeries(
+      economicData.inflation
+    );
+
+  const backendInflation =
+    inflationData.map((item) => ({
+      year: item.date,
+      value: Number(item.value),
+    }));
+
+  const currentGDP =
+    latestValue(gdpSeries);
+
+  const currentUnemployment =
+    latestValue(unemploymentSeries);
+
+  const currentInflation =
+    latestValue(worldBankInflation) ??
+    latestValue(backendInflation);
+
+  const currentFX =
+    exchangeRate?.[selected.currency];
+
+  function downloadPDF() {
+    const doc = new jsPDF();
+
+    doc.setFontSize(22);
+    doc.setTextColor(14, 165, 233);
+
+    doc.text(
+      "NexusEconomics",
+      20,
+      22
+    );
+
+    doc.setFontSize(11);
+    doc.setTextColor(100, 116, 139);
+
+    doc.text(
+      "Economic Intelligence Report",
+      20,
+      31
+    );
+
+    doc.text(
+      `Country: ${country}`,
+      20,
+      40
+    );
+
+    doc.text(
+      `Generated: ${new Date().toLocaleDateString()}`,
+      20,
+      47
+    );
+
+    doc.line(
+      20,
+      53,
+      190,
+      53
+    );
+
+    doc.setTextColor(
+      30,
+      30,
+      30
+    );
+
+    doc.setFontSize(14);
+
+    doc.text(
+      "Economic Indicators",
+      20,
+      65
+    );
+
+    doc.setFontSize(11);
+
+    doc.text(
+      `Inflation: ${formatValue(
+        currentInflation
+      )}%`,
+      20,
+      77
+    );
+
+    doc.text(
+      `GDP Growth: ${formatValue(
+        currentGDP
+      )}%`,
+      20,
+      87
+    );
+
+    doc.text(
+      `Unemployment: ${formatValue(
+        currentUnemployment
+      )}%`,
+      20,
+      97
+    );
+
+    doc.text(
+      `USD/${selected.currency}: ${formatValue(
+        currentFX,
+        selected.currency === "UGX" ||
+          selected.currency === "TZS"
+          ? 0
+          : 2
+      )}`,
+      20,
+      107
+    );
+
+    if (report) {
+      doc.line(
+        20,
+        115,
+        190,
+        115
+      );
+
+      doc.setFontSize(14);
+
+      doc.text(
+        "AI Economic Analysis",
+        20,
+        128
+      );
+
+      doc.setFontSize(10);
+
+      const lines =
+        doc.splitTextToSize(
+          report,
+          170
+        );
+
+      doc.text(
+        lines,
+        20,
+        139
+      );
+    }
+
+    doc.save(
+      `NexusEconomics_${country}_Report.pdf`
+    );
+  }
 
   async function generateReport() {
     setReportLoading(true);
     setReport("");
+
     try {
-      const response = await fetch(`${BACKEND_URL}/api/report`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          inflation: latestInflation,
-          exchangeKES: getRate(exchangeRate, "KES", 2),
-          exchangeUGX: getRate(exchangeRate, "UGX", 0),
-          unemployment: selected.unemployment.replace("%", ""),
-          country,
-        }),
-      });
-      const data = await response.json();
-      setReport(data.report);
+      const response =
+        await fetch(
+          `${BACKEND_URL}/api/report`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type":
+                "application/json",
+            },
+            body: JSON.stringify({
+              country,
+
+              inflation:
+                formatValue(
+                  currentInflation
+                ),
+
+              gdpGrowth:
+                formatValue(
+                  currentGDP
+                ),
+
+              unemployment:
+                formatValue(
+                  currentUnemployment
+                ),
+
+              exchangeRate:
+                formatValue(
+                  currentFX,
+                  selected.currency ===
+                    "UGX" ||
+                    selected.currency ===
+                      "TZS"
+                    ? 0
+                    : 2
+                ),
+            }),
+          }
+        );
+
+      const data =
+        await response.json();
+
+      setReport(
+        data.report ||
+          "The AI report could not be generated."
+      );
     } catch (error) {
-      setReport("Error generating report. Please try again.");
+      console.error(error);
+
+      setReport(
+        "Unable to connect to the AI reporting service."
+      );
     } finally {
       setReportLoading(false);
     }
   }
 
-  function downloadPDF() {
-    const doc = new jsPDF();
-    doc.setFontSize(22);
-    doc.setTextColor(14, 165, 233);
-    doc.text("NexusEconomics", 20, 22);
-    doc.setFontSize(11);
-    doc.setTextColor(100, 116, 139);
-    doc.text("AI-Powered Economic Intelligence Report", 20, 31);
-    doc.text(`Country: ${country}   |   Generated: ${new Date().toLocaleDateString()}`, 20, 39);
-    doc.setDrawColor(51, 65, 85);
-    doc.line(20, 44, 190, 44);
-    doc.setFontSize(14);
-    doc.setTextColor(30, 30, 30);
-    doc.text("Economic Indicators", 20, 56);
-    doc.setFontSize(11);
-    doc.text(`Inflation Rate:   ${latestInflation}%`, 20, 68);
-    doc.text(`Unemployment:     ${selected.unemployment}`, 20, 78);
-    doc.text(`USD/${selected.currency}:        ${getRate(exchangeRate, selected.currency, currencyDecimals)}`, 20, 88);
-    doc.line(20, 96, 190, 96);
-    doc.setFontSize(14);
-    doc.text("Risk Assessment", 20, 108);
-    doc.setFontSize(11);
-    doc.text(`Inflation Risk:    ${selected.risk.inflation}`, 20, 120);
-    doc.text(`Growth Risk:       ${selected.risk.growth}`, 20, 130);
-    doc.text(`Currency Risk:     ${selected.risk.currency}`, 20, 140);
-    doc.text(`Energy Price Risk: ${selected.risk.energy}`, 20, 150);
-    doc.line(20, 158, 190, 158);
-    if (report) {
-      doc.setFontSize(14);
-      doc.text("AI Economic Analysis", 20, 170);
-      doc.setFontSize(10);
-      const lines = doc.splitTextToSize(report, 170);
-      doc.text(lines, 20, 182);
-    } else {
-      doc.setFontSize(10);
-      doc.setTextColor(150);
-      doc.text("No AI report generated yet.", 20, 170);
-    }
-    doc.setFontSize(9);
-    doc.setTextColor(150);
-    doc.text("NexusEconomics v2.0 — Developed by Brian Otieno", 20, 285);
-    doc.save(`NexusEconomics_${country}_Report.pdf`);
-  }
+  function Dashboard() {
+    return (
+      <>
+        <h1 style={styles.title}>
+          Economic Dashboard
+        </h1>
 
-  const navItems = [
-    { icon: "📊", label: "Dashboard" },
-    { icon: "📈", label: "Analytics" },
-    { icon: "🌍", label: "Global Markets" },
-    { icon: "🤖", label: "AI Reports" },
-    { icon: "⚙️", label: "Settings" },
-  ];
+        <p style={styles.subtitle}>
+          Real-time economic intelligence
+          for East Africa
+        </p>
 
-  const tooltipStyle = { contentStyle: { backgroundColor: "#1e293b", border: "1px solid #334155", borderRadius: "8px", color: "white" } };
+        <span style={styles.badge}>
+          🟢 Live Economic Data
+        </span>
 
-  return (
-    <div style={styles.app}>
-      <Helmet>
-        <title>NexusEconomics - AI-Powered Economic Intelligence Platform</title>
-        <meta name="description" content="NexusEconomics is a real-time AI-powered economic intelligence and forecasting platform for East Africa." />
-        <meta name="keywords" content="NexusEconomics, Kenya economy, East Africa economics, AI forecasting, inflation, exchange rate" />
-      </Helmet>
-
-      <div style={styles.sidebar}>
-        <div style={styles.logo}>
-          NexusEconomics
-          <span style={styles.logoSub}>Economic Intelligence Platform</span>
-        </div>
-        {navItems.map((item) => (
-          <div key={item.label} style={{ ...styles.navItem, ...(activeNav === item.label ? styles.navItemActive : {}) }} onClick={() => setActiveNav(item.label)}>
-            {item.icon} {item.label}
-          </div>
-        ))}
-        <div style={{ marginTop: "auto", padding: "16px", backgroundColor: "#0f172a", borderRadius: "12px" }}>
-          <div style={{ fontSize: "12px", color: "#64748b" }}>Live Data Status</div>
-          <div style={{ fontSize: "13px", color: "#22c55e", marginTop: "4px" }}>● All systems operational</div>
-        </div>
-      </div>
-
-      <div style={styles.main}>
-        <div>
-          <h1 style={styles.headerTitle}>Economic Dashboard</h1>
-          <p style={styles.headerSub}>Real-time economic intelligence for East Africa</p>
-          <span style={styles.badge}>🔴 Live Data</span>
-          <div style={{ marginTop: "16px", display: "flex", gap: "10px", flexWrap: "wrap" }}>
-            {Object.keys(countryMeta).map((c) => (
-              <button key={c} onClick={() => { setCountry(c); setReport(""); }}
-                style={{ ...styles.countryBtn, backgroundColor: country === c ? "#0ea5e9" : "#1e293b", color: country === c ? "white" : "#64748b" }}>
-                {countryMeta[c].flag} {c}
+        <div
+          style={{
+            display: "flex",
+            gap: "8px",
+            flexWrap: "wrap",
+            marginTop: "18px",
+          }}
+        >
+          {Object.keys(countries).map(
+            (item) => (
+              <button
+                key={item}
+                onClick={() => {
+                  setCountry(item);
+                  setReport("");
+                }}
+                style={{
+                  ...styles.darkButton,
+                  backgroundColor:
+                    country === item
+                      ? "#0ea5e9"
+                      : "#1e293b",
+                }}
+              >
+                {countries[item].flag}{" "}
+                {item}
               </button>
-            ))}
-          </div>
+            )
+          )}
         </div>
 
         {loading ? (
-          <div style={{ color: "#64748b", fontSize: "16px", marginTop: "40px" }}>Loading {country} data...</div>
+          <p
+            style={{
+              color: "#64748b",
+              marginTop: "40px",
+            }}
+          >
+            Loading {country} economic
+            intelligence...
+          </p>
         ) : (
           <>
             <div style={styles.grid}>
               <div style={styles.card}>
-                <div style={styles.cardLabel}>Inflation Rate</div>
-                <div style={styles.cardValue}>{latestInflation}%</div>
-                <div style={styles.cardSub}>{country} Latest Rate</div>
-                <div style={styles.cardTrend}>↑ Live Data</div>
+                <div style={styles.cardLabel}>
+                  Inflation
+                </div>
+
+                <div style={styles.cardValue}>
+                  {formatValue(
+                    currentInflation
+                  )}
+                  %
+                </div>
+
+                <div style={styles.cardSub}>
+                  Consumer price inflation
+                </div>
+
+                <div style={styles.trend}>
+                  ● Latest available
+                </div>
               </div>
+
               <div style={styles.card}>
-                <div style={styles.cardLabel}>Unemployment</div>
-                <div style={styles.cardValue}>{selected.unemployment}</div>
-                <div style={styles.cardSub}>{country} National Rate</div>
-                <div style={{ ...styles.cardTrend, color: "#f59e0b" }}>→ Stable</div>
+                <div style={styles.cardLabel}>
+                  GDP Growth
+                </div>
+
+                <div style={styles.cardValue}>
+                  {formatValue(
+                    currentGDP
+                  )}
+                  %
+                </div>
+
+                <div style={styles.cardSub}>
+                  Annual GDP growth
+                </div>
+
+                <div style={styles.trend}>
+                  ↑ Economic growth
+                </div>
               </div>
+
               <div style={styles.card}>
-                <div style={styles.cardLabel}>USD / {selected.currency}</div>
-                <div style={styles.cardValue}>{getRate(exchangeRate, selected.currency, currencyDecimals)}</div>
-                <div style={styles.cardSub}>{selected.currencyName}</div>
-                <div style={styles.cardTrend}>↑ Live Rate</div>
+                <div style={styles.cardLabel}>
+                  Unemployment
+                </div>
+
+                <div style={styles.cardValue}>
+                  {formatValue(
+                    currentUnemployment
+                  )}
+                  %
+                </div>
+
+                <div style={styles.cardSub}>
+                  National unemployment
+                </div>
+
+                <div
+                  style={{
+                    ...styles.trend,
+                    color: "#f59e0b",
+                  }}
+                >
+                  ● Latest available
+                </div>
               </div>
+
               <div style={styles.card}>
-                <div style={styles.cardLabel}>USD / TZS</div>
-                <div style={styles.cardValue}>{getRate(exchangeRate, "TZS", 0)}</div>
-                <div style={styles.cardSub}>Tanzania Shilling</div>
-                <div style={styles.cardTrend}>↑ Live Rate</div>
+                <div style={styles.cardLabel}>
+                  USD /{" "}
+                  {selected.currency}
+                </div>
+
+                <div style={styles.cardValue}>
+                  {formatValue(
+                    currentFX,
+                    selected.currency ===
+                      "UGX" ||
+                      selected.currency ===
+                        "TZS"
+                      ? 0
+                      : 2
+                  )}
+                </div>
+
+                <div style={styles.cardSub}>
+                  {selected.currencyName}
+                </div>
+
+                <div style={styles.trend}>
+                  ● Live FX
+                </div>
               </div>
             </div>
 
+            {lastUpdated && (
+              <p
+                style={{
+                  color: "#64748b",
+                  fontSize: "12px",
+                  marginBottom: "20px",
+                }}
+              >
+                Last updated:{" "}
+                {lastUpdated.toLocaleString()}
+              </p>
+            )}
+
             <div style={styles.twoCol}>
               <div style={styles.section}>
-                <div style={styles.sectionTitle}>📈 Inflation Trend — {country}</div>
-                <div style={{ height: "250px" }}>
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={chartData}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-                      <XAxis dataKey="month" stroke="#64748b" tick={{ fontSize: 10 }} />
-                      <YAxis stroke="#64748b" tick={{ fontSize: 11 }} domain={["auto", "auto"]} />
-                      <Tooltip {...tooltipStyle} />
-                      <Line type="monotone" dataKey="inflation" stroke="#38bdf8" strokeWidth={3} dot={{ r: 3, fill: "#38bdf8" }} />
+                <div
+                  style={styles.sectionTitle}
+                >
+                  📈 GDP Growth Trend
+                </div>
+
+                <div
+                  style={{
+                    height: "280px",
+                  }}
+                >
+                  <ResponsiveContainer
+                    width="100%"
+                    height="100%"
+                  >
+                    <LineChart
+                      data={gdpSeries}
+                    >
+                      <CartesianGrid
+                        strokeDasharray="3 3"
+                        stroke="#334155"
+                      />
+
+                      <XAxis
+                        dataKey="year"
+                        stroke="#64748b"
+                      />
+
+                      <YAxis
+                        stroke="#64748b"
+                      />
+
+                      <Tooltip />
+
+                      <Line
+                        type="monotone"
+                        dataKey="value"
+                        stroke="#22c55e"
+                        strokeWidth={3}
+                        dot={false}
+                      />
                     </LineChart>
                   </ResponsiveContainer>
                 </div>
               </div>
+
               <div style={styles.section}>
-                <div style={styles.sectionTitle}>💹 Unemployment Trend — {country}</div>
-                <div style={{ height: "250px" }}>
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={unemploymentTrends[country]}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-                      <XAxis dataKey="year" stroke="#64748b" tick={{ fontSize: 11 }} />
-                      <YAxis stroke="#64748b" tick={{ fontSize: 11 }} domain={["auto", "auto"]} />
-                      <Tooltip {...tooltipStyle} />
-                      <Bar dataKey="rate" fill="#818cf8" radius={[6, 6, 0, 0]} />
-                    </BarChart>
+                <div
+                  style={styles.sectionTitle}
+                >
+                  📊 Inflation Trend
+                </div>
+
+                <div
+                  style={{
+                    height: "280px",
+                  }}
+                >
+                  <ResponsiveContainer
+                    width="100%"
+                    height="100%"
+                  >
+                    <AreaChart
+                      data={
+                        worldBankInflation
+                      }
+                    >
+                      <CartesianGrid
+                        strokeDasharray="3 3"
+                        stroke="#334155"
+                      />
+
+                      <XAxis
+                        dataKey="year"
+                        stroke="#64748b"
+                      />
+
+                      <YAxis
+                        stroke="#64748b"
+                      />
+
+                      <Tooltip />
+
+                      <Area
+                        type="monotone"
+                        dataKey="value"
+                        stroke="#38bdf8"
+                        fill="#38bdf8"
+                        fillOpacity={0.12}
+                      />
+                    </AreaChart>
                   </ResponsiveContainer>
                 </div>
               </div>
             </div>
 
             <div style={styles.section}>
-              <div style={styles.sectionTitle}>💱 East Africa Exchange Rates vs USD</div>
-              <p style={{ color: "#64748b", fontSize: "12px", marginBottom: "16px" }}>UGX and TZS divided by 10 for scale comparison</p>
-              <div style={{ height: "250px" }}>
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={exchangeChartData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-                    <XAxis dataKey="currency" stroke="#64748b" tick={{ fontSize: 13 }} />
-                    <YAxis stroke="#64748b" tick={{ fontSize: 11 }} />
-                    <Tooltip {...tooltipStyle} />
-                    <Bar dataKey="rate" fill="#38bdf8" radius={[8, 8, 0, 0]} />
+              <div
+                style={styles.sectionTitle}
+              >
+                👷 Unemployment Trend
+              </div>
+
+              <div
+                style={{
+                  height: "300px",
+                }}
+              >
+                <ResponsiveContainer
+                  width="100%"
+                  height="100%"
+                >
+                  <BarChart
+                    data={
+                      unemploymentSeries
+                    }
+                  >
+                    <CartesianGrid
+                      strokeDasharray="3 3"
+                      stroke="#334155"
+                    />
+
+                    <XAxis
+                      dataKey="year"
+                      stroke="#64748b"
+                    />
+
+                    <YAxis
+                      stroke="#64748b"
+                    />
+
+                    <Tooltip />
+
+                    <Bar
+                      dataKey="value"
+                      fill="#818cf8"
+                      radius={[
+                        6,
+                        6,
+                        0,
+                        0,
+                      ]}
+                    />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
             </div>
 
             <div style={styles.section}>
-              <div style={styles.sectionTitle}>📰 Latest {country} Economic News</div>
-              {news.length > 0 ? news.map((article, index) => (
-                <div key={index} style={styles.newsItem}>
-                  <a href={article.url} target="_blank" rel="noreferrer" style={styles.newsLink}>{article.title}</a>
-                  <p style={styles.newsDesc}>{article.description}</p>
-                </div>
-              )) : (
-                <p style={{ color: "#64748b" }}>No news available at the moment.</p>
+              <div
+                style={styles.sectionTitle}
+              >
+                📰 Latest {country} Economic News
+              </div>
+
+              {news.length > 0 ? (
+                news.map(
+                  (article, index) => (
+                    <div
+                      key={index}
+                      style={{
+                        padding:
+                          "14px 0",
+                        borderBottom:
+                          "1px solid #334155",
+                      }}
+                    >
+                      <a
+                        href={
+                          article.url
+                        }
+                        target="_blank"
+                        rel="noreferrer"
+                        style={{
+                          color:
+                            "#38bdf8",
+                          fontWeight:
+                            "600",
+                          textDecoration:
+                            "none",
+                        }}
+                      >
+                        {article.title}
+                      </a>
+
+                      <p
+                        style={{
+                          color:
+                            "#64748b",
+                          fontSize:
+                            "13px",
+                        }}
+                      >
+                        {
+                          article.description
+                        }
+                      </p>
+                    </div>
+                  )
+                )
+              ) : (
+                <p
+                  style={{
+                    color:
+                      "#64748b",
+                  }}
+                >
+                  No news available.
+                </p>
               )}
-            </div>
-
-            <div style={styles.section}>
-              <div style={styles.sectionTitle}>🤖 AI Economic Analysis — {country}</div>
-              <p style={{ color: "#64748b", fontSize: "13px", marginBottom: "16px" }}>Powered by Claude AI — generates real-time economic insights from live data</p>
-              <div style={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: "12px" }}>
-                <button onClick={generateReport} disabled={reportLoading} style={reportLoading ? styles.btnDisabled : styles.btn}>
-                  {reportLoading ? "⏳ Generating Report..." : "Generate AI Report"}
-                </button>
-                <button onClick={downloadPDF} style={styles.btnGreen}>⬇ Download PDF</button>
-              </div>
-              {report && <div style={styles.report}>{report}</div>}
-            </div>
-
-            <div style={styles.section}>
-              <div style={styles.sectionTitle}>⚠️ Economic Risk Monitor — {country}</div>
-              <div style={styles.riskGrid}>
-                <div style={styles.riskItem}><span style={{ fontSize: "20px" }}>{riskIcon(selected.risk.inflation)}</span><span style={styles.riskText}>Inflation Risk: <strong>{selected.risk.inflation}</strong></span></div>
-                <div style={styles.riskItem}><span style={{ fontSize: "20px" }}>{riskIcon(selected.risk.growth)}</span><span style={styles.riskText}>Growth Risk: <strong>{selected.risk.growth}</strong></span></div>
-                <div style={styles.riskItem}><span style={{ fontSize: "20px" }}>{riskIcon(selected.risk.currency)}</span><span style={styles.riskText}>Currency Risk: <strong>{selected.risk.currency}</strong></span></div>
-                <div style={styles.riskItem}><span style={{ fontSize: "20px" }}>{riskIcon(selected.risk.energy)}</span><span style={styles.riskText}>Energy Price Risk: <strong>{selected.risk.energy}</strong></span></div>
-              </div>
-            </div>
-
-            <div style={styles.footer}>
-              NexusEconomics v2.0 — Live Economic Intelligence · Developed by Brian Otieno
             </div>
           </>
         )}
+      </>
+    );
+  }
+
+  function Analytics() {
+    return (
+      <>
+        <h1 style={styles.title}>
+          Analytics
+        </h1>
+
+        <p style={styles.subtitle}>
+          Deeper analysis of{" "}
+          {country}'s economic indicators
+        </p>
+
+        <div style={styles.grid}>
+          <div style={styles.card}>
+            <div style={styles.cardLabel}>
+              GDP Growth
+            </div>
+
+            <div style={styles.cardValue}>
+              {formatValue(
+                currentGDP
+              )}
+              %
+            </div>
+          </div>
+
+          <div style={styles.card}>
+            <div style={styles.cardLabel}>
+              Inflation
+            </div>
+
+            <div style={styles.cardValue}>
+              {formatValue(
+                currentInflation
+              )}
+              %
+            </div>
+          </div>
+
+          <div style={styles.card}>
+            <div style={styles.cardLabel}>
+              Unemployment
+            </div>
+
+            <div style={styles.cardValue}>
+              {formatValue(
+                currentUnemployment
+              )}
+              %
+            </div>
+          </div>
+        </div>
+
+        <div style={styles.section}>
+          <div style={styles.sectionTitle}>
+            📈 GDP Growth Analysis
+          </div>
+
+          <div style={{ height: "350px" }}>
+            <ResponsiveContainer
+              width="100%"
+              height="100%"
+            >
+              <LineChart
+                data={gdpSeries}
+              >
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                  stroke="#334155"
+                />
+
+                <XAxis
+                  dataKey="year"
+                  stroke="#64748b"
+                />
+
+                <YAxis
+                  stroke="#64748b"
+                />
+
+                <Tooltip />
+
+                <Line
+                  type="monotone"
+                  dataKey="value"
+                  stroke="#22c55e"
+                  strokeWidth={3}
+                  dot={false}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+        <div style={styles.section}>
+          <div style={styles.sectionTitle}>
+            📊 Inflation Analysis
+          </div>
+
+          <div style={{ height: "350px" }}>
+            <ResponsiveContainer
+              width="100%"
+              height="100%"
+            >
+              <AreaChart
+                data={
+                  worldBankInflation
+                }
+              >
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                  stroke="#334155"
+                />
+
+                <XAxis
+                  dataKey="year"
+                  stroke="#64748b"
+                />
+
+                <YAxis
+                  stroke="#64748b"
+                />
+
+                <Tooltip />
+
+                <Area
+                  type="monotone"
+                  dataKey="value"
+                  stroke="#38bdf8"
+                  fill="#38bdf8"
+                  fillOpacity={0.12}
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      </>
+    );
+  }
+
+  function GlobalMarkets() {
+    const currencies = [
+      ["KES", "🇰🇪", "Kenya"],
+      ["UGX", "🇺🇬", "Uganda"],
+      ["TZS", "🇹🇿", "Tanzania"],
+      ["RWF", "🇷🇼", "Rwanda"],
+      ["ETB", "🇪🇹", "Ethiopia"],
+    ];
+
+    return (
+      <>
+        <h1 style={styles.title}>
+          Global Markets
+        </h1>
+
+        <p style={styles.subtitle}>
+          East African foreign exchange
+          intelligence
+        </p>
+
+        <div
+          style={{
+            marginTop: "20px",
+            marginBottom: "20px",
+          }}
+        >
+          <span style={styles.badge}>
+            🟢 Live FX Data
+          </span>
+
+          <button
+            onClick={loadData}
+            style={{
+              ...styles.button,
+              marginLeft: "12px",
+            }}
+          >
+            🔄 Refresh Markets
+          </button>
+        </div>
+
+        <div style={styles.grid}>
+          {currencies.map(
+            ([code, flag, name]) => (
+              <div
+                key={code}
+                style={styles.card}
+              >
+                <div
+                  style={{
+                    fontSize: "26px",
+                  }}
+                >
+                  {flag}
+                </div>
+
+                <div
+                  style={{
+                    ...styles.cardLabel,
+                    marginTop: "15px",
+                  }}
+                >
+                  USD / {code}
+                </div>
+
+                <div
+                  style={styles.cardValue}
+                >
+                  {formatValue(
+                    exchangeRate?.[
+                      code
+                    ],
+                    code === "UGX" ||
+                      code === "TZS"
+                      ? 0
+                      : 2
+                  )}
+                </div>
+
+                <div
+                  style={styles.cardSub}
+                >
+                  {name}
+                </div>
+              </div>
+            )
+          )}
+        </div>
+
+        <div style={styles.section}>
+          <div
+            style={styles.sectionTitle}
+          >
+            🌍 Currency Comparison
+          </div>
+
+          <div style={{ height: "350px" }}>
+            <ResponsiveContainer
+              width="100%"
+              height="100%"
+            >
+              <BarChart
+                data={currencies.map(
+                  ([code]) => ({
+                    currency: code,
+                    rate: Number(
+                      exchangeRate?.[
+                        code
+                      ] || 0
+                    ),
+                  })
+                )}
+              >
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                  stroke="#334155"
+                />
+
+                <XAxis
+                  dataKey="currency"
+                  stroke="#64748b"
+                />
+
+                <YAxis
+                  stroke="#64748b"
+                />
+
+                <Tooltip />
+
+                <Bar
+                  dataKey="rate"
+                  fill="#38bdf8"
+                />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      </>
+    );
+  }
+
+  function AIReports() {
+    return (
+      <>
+        <h1 style={styles.title}>
+          AI Reports
+        </h1>
+
+        <p style={styles.subtitle}>
+          AI-powered economic intelligence
+        </p>
+
+        <div style={styles.section}>
+          <div
+            style={styles.sectionTitle}
+          >
+            🤖 Generate Economic Report
+          </div>
+
+          <p
+            style={{
+              color: "#94a3b8",
+              lineHeight: "1.7",
+            }}
+          >
+            Generate an economic assessment
+            using the latest available
+            indicators for {country}.
+          </p>
+
+          <select
+            value={country}
+            onChange={(e) => {
+              setCountry(
+                e.target.value
+              );
+              setReport("");
+            }}
+            style={styles.select}
+          >
+            {Object.keys(countries).map(
+              (item) => (
+                <option
+                  key={item}
+                  value={item}
+                >
+                  {countries[item].flag}{" "}
+                  {item}
+                </option>
+              )
+            )}
+          </select>
+
+          <div
+            style={{
+              marginTop: "20px",
+              display: "flex",
+              gap: "10px",
+            }}
+          >
+            <button
+              onClick={generateReport}
+              disabled={
+                reportLoading
+              }
+              style={styles.button}
+            >
+              {reportLoading
+                ? "⏳ Generating..."
+                : "🤖 Generate AI Report"}
+            </button>
+
+            {report && (
+              <button
+                onClick={downloadPDF}
+                style={
+                  styles.greenButton
+                }
+              >
+                ⬇ Download PDF
+              </button>
+            )}
+          </div>
+
+          {report && (
+            <div style={styles.report}>
+              {report}
+            </div>
+          )}
+        </div>
+      </>
+    );
+  }
+
+  function Settings() {
+    return (
+      <>
+        <h1 style={styles.title}>
+          Settings
+        </h1>
+
+        <p style={styles.subtitle}>
+          Manage NexusEconomics preferences
+        </p>
+
+        <div style={styles.section}>
+          <div
+            style={styles.sectionTitle}
+          >
+            🌍 Default Country
+          </div>
+
+          <select
+            value={country}
+            onChange={(e) =>
+              setCountry(
+                e.target.value
+              )
+            }
+            style={styles.select}
+          >
+            {Object.keys(countries).map(
+              (item) => (
+                <option
+                  key={item}
+                  value={item}
+                >
+                  {countries[item].flag}{" "}
+                  {item}
+                </option>
+              )
+            )}
+          </select>
+        </div>
+
+        <div style={styles.section}>
+          <div
+            style={styles.sectionTitle}
+          >
+            🔄 Automatic Data Refresh
+          </div>
+
+          <p
+            style={{
+              color: "#64748b",
+            }}
+          >
+            Refresh economic data every
+            five minutes.
+          </p>
+
+          <button
+            onClick={() =>
+              setAutoRefresh(
+                !autoRefresh
+              )
+            }
+            style={
+              autoRefresh
+                ? styles.greenButton
+                : styles.button
+            }
+          >
+            {autoRefresh
+              ? "✓ Auto Refresh Enabled"
+              : "Enable Auto Refresh"}
+          </button>
+
+          <button
+            onClick={loadData}
+            style={{
+              ...styles.darkButton,
+              marginLeft: "10px",
+            }}
+          >
+            🔄 Refresh Now
+          </button>
+        </div>
+
+        <div style={styles.section}>
+          <div
+            style={styles.sectionTitle}
+          >
+            ℹ️ About NexusEconomics
+          </div>
+
+          <p
+            style={{
+              color: "#94a3b8",
+              lineHeight: "1.8",
+            }}
+          >
+            NexusEconomics is an
+            AI-powered economic
+            intelligence platform
+            designed to monitor and
+            analyze East African
+            economies.
+          </p>
+
+          <p
+            style={{
+              color: "#64748b",
+              fontSize: "13px",
+            }}
+          >
+            Version 3.0 · Developed by
+            Brian Otieno
+          </p>
+        </div>
+      </>
+    );
+  }
+
+  function renderPage() {
+    if (activeNav === "Analytics")
+      return <Analytics />;
+
+    if (
+      activeNav ===
+      "Global Markets"
+    )
+      return <GlobalMarkets />;
+
+    if (
+      activeNav === "AI Reports"
+    )
+      return <AIReports />;
+
+    if (
+      activeNav === "Settings"
+    )
+      return <Settings />;
+
+    return <Dashboard />;
+  }
+
+  const navItems = [
+    ["📊", "Dashboard"],
+    ["📈", "Analytics"],
+    ["🌍", "Global Markets"],
+    ["🤖", "AI Reports"],
+    ["⚙️", "Settings"],
+  ];
+
+  return (
+    <>
+      <Helmet>
+        <title>
+          NexusEconomics —
+          Economic Intelligence
+        </title>
+
+        <meta
+          name="description"
+          content="AI-powered economic intelligence platform for East Africa."
+        />
+      </Helmet>
+
+      <div style={styles.app}>
+        <aside style={styles.sidebar}>
+          <div style={styles.logo}>
+            NexusEconomics
+
+            <span
+              style={styles.logoSub}
+            >
+              Economic Intelligence
+              Platform
+            </span>
+          </div>
+
+          {navItems.map(
+            ([icon, label]) => (
+              <div
+                key={label}
+                onClick={() =>
+                  setActiveNav(label)
+                }
+                style={{
+                  ...styles.navItem,
+                  ...(activeNav ===
+                  label
+                    ? styles.navActive
+                    : {}),
+                }}
+              >
+                {icon} {label}
+              </div>
+            )
+          )}
+
+          <div
+            style={{
+              marginTop: "auto",
+              padding: "15px",
+              backgroundColor:
+                "#0f172a",
+              borderRadius: "12px",
+            }}
+          >
+            <div
+              style={{
+                color: "#64748b",
+                fontSize: "11px",
+              }}
+            >
+              SYSTEM STATUS
+            </div>
+
+            <div
+              style={{
+                color: "#22c55e",
+                fontSize: "13px",
+                marginTop: "5px",
+              }}
+            >
+              ● Operational
+            </div>
+          </div>
+        </aside>
+
+        <main style={styles.main}>
+          {renderPage()}
+
+          <div style={styles.footer}>
+            NexusEconomics v3.0 —
+            East African Economic
+            Intelligence · Developed by
+            Brian Otieno
+          </div>
+        </main>
       </div>
-    </div>
+    </>
   );
 }
