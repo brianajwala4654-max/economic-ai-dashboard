@@ -18,16 +18,13 @@ const frontendPath = path.join(__dirname, '..', 'dist');
 
 app.use(express.static(frontendPath));
 
-
 // ============================================================
 // ENVIRONMENT VARIABLES
 // ============================================================
 
 const PORT = process.env.PORT || 3001;
-
 const EXCHANGE_API_KEY = process.env.EXCHANGE_API_KEY;
 const CLAUDE_API_KEY = process.env.CLAUDE_API_KEY;
-
 
 // ============================================================
 // COUNTRY INFLATION DATA
@@ -37,94 +34,43 @@ const countryInflation = {
   Kenya: {
     rate: 3.6,
     trend: [
-      3.2,
-      3.4,
-      3.6,
-      3.8,
-      3.9,
-      3.7,
-      3.6,
-      3.5,
-      3.6,
-      3.7,
-      3.6,
-      3.6
+      3.2, 3.4, 3.6, 3.8, 3.9, 3.7,
+      3.6, 3.5, 3.6, 3.7, 3.6, 3.6
     ]
   },
 
   Uganda: {
     rate: 3.5,
     trend: [
-      3.8,
-      3.6,
-      3.4,
-      3.2,
-      3.3,
-      3.5,
-      3.6,
-      3.5,
-      3.4,
-      3.5,
-      3.5,
-      3.5
+      3.8, 3.6, 3.4, 3.2, 3.3, 3.5,
+      3.6, 3.5, 3.4, 3.5, 3.5, 3.5
     ]
   },
 
   Tanzania: {
     rate: 3.1,
     trend: [
-      3.5,
-      3.4,
-      3.3,
-      3.2,
-      3.1,
-      3.0,
-      3.1,
-      3.2,
-      3.1,
-      3.0,
-      3.1,
-      3.1
+      3.5, 3.4, 3.3, 3.2, 3.1, 3.0,
+      3.1, 3.2, 3.1, 3.0, 3.1, 3.1
     ]
   },
 
   Rwanda: {
     rate: 4.8,
     trend: [
-      5.2,
-      5.0,
-      4.9,
-      4.8,
-      4.7,
-      4.8,
-      4.9,
-      4.8,
-      4.7,
-      4.8,
-      4.8,
-      4.8
+      5.2, 5.0, 4.9, 4.8, 4.7, 4.8,
+      4.9, 4.8, 4.7, 4.8, 4.8, 4.8
     ]
   },
 
   Ethiopia: {
     rate: 9.4,
     trend: [
-      11.0,
-      10.5,
-      10.2,
-      9.9,
-      9.7,
-      9.5,
-      9.4,
-      9.4,
-      9.3,
-      9.4,
-      9.4,
-      9.4
+      11.0, 10.5, 10.2, 9.9, 9.7, 9.5,
+      9.4, 9.4, 9.3, 9.4, 9.4, 9.4
     ]
   }
 };
-
 
 // ============================================================
 // INFLATION MONTHS
@@ -145,15 +91,8 @@ const months = [
   '2026-06'
 ];
 
-
 // ============================================================
-// NEWS SOURCES
-//
-// Google News RSS is used as the primary source because many
-// individual publisher RSS feeds block cloud servers such as
-// Render.
-//
-// These URLs do not require an API key.
+// NEWS SEARCH QUERIES
 // ============================================================
 
 const newsQueries = {
@@ -163,7 +102,6 @@ const newsQueries = {
   Rwanda: 'Rwanda economy OR Rwanda business OR Rwanda markets',
   Ethiopia: 'Ethiopia economy OR Ethiopia business OR Ethiopia markets'
 };
-
 
 // ============================================================
 // HELPER: CLEAN HTML
@@ -180,23 +118,23 @@ function cleanText(text = '') {
     .trim();
 }
 
-
 // ============================================================
-// HELPER: GET RSS NEWS
+// GOOGLE NEWS RSS
 // ============================================================
 
 async function fetchGoogleNews(country) {
-  const query =
-    newsQueries[country] || newsQueries.Kenya;
+  const query = newsQueries[country] || newsQueries.Kenya;
 
   const url =
-    `https://news.google.com/rss/search?q=${encodeURIComponent(query)}&hl=en-KE&gl=KE&ceid=KE:en`;
+    `https://news.google.com/rss/search?q=${encodeURIComponent(
+      query
+    )}&hl=en-KE&gl=KE&ceid=KE:en`;
 
   try {
     console.log(`Fetching Google News for ${country}`);
 
     const response = await axios.get(url, {
-      timeout: 10000,
+      timeout: 15000,
       headers: {
         'User-Agent':
           'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120 Safari/537.36',
@@ -210,11 +148,9 @@ async function fetchGoogleNews(country) {
       trim: true
     });
 
-    const result =
-      await parser.parseStringPromise(response.data);
+    const result = await parser.parseStringPromise(response.data);
 
-    const items =
-      result?.rss?.channel?.item || [];
+    const items = result?.rss?.channel?.item || [];
 
     const itemArray = Array.isArray(items)
       ? items
@@ -223,26 +159,20 @@ async function fetchGoogleNews(country) {
     const articles = itemArray
       .filter(Boolean)
       .map(item => {
-        let title = cleanText(item.title || '');
+        const title = cleanText(item.title || '');
 
-        let description = cleanText(
+        const description = cleanText(
           item.description || ''
         );
 
         let link = item.link || '';
 
-        // Google News may provide the link as an object
         if (typeof link === 'object') {
           link =
             link._ ||
             link.href ||
             '';
         }
-
-        // Remove Google News source suffix from title
-        // Example:
-        // "Kenya economy grows - Business Daily"
-        title = title.trim();
 
         return {
           title,
@@ -257,7 +187,11 @@ async function fetchGoogleNews(country) {
             ''
         };
       })
-      .filter(article => article.title && article.url);
+      .filter(
+        article =>
+          article.title &&
+          article.url
+      );
 
     console.log(
       `Found ${articles.length} articles for ${country}`
@@ -275,17 +209,26 @@ async function fetchGoogleNews(country) {
   }
 }
 
+// ============================================================
+// HEALTH CHECK
+// ============================================================
+
+app.get('/api/health', (req, res) => {
+  res.json({
+    status: 'ok',
+    service: 'NexusEconomics API',
+    timestamp: new Date().toISOString()
+  });
+});
 
 // ============================================================
 // INFLATION API
 // ============================================================
 
 app.get('/api/inflation/:country', (req, res) => {
-
   const country = req.params.country;
 
-  const data =
-    countryInflation[country];
+  const data = countryInflation[country];
 
   if (!data) {
     return res.status(404).json({
@@ -293,11 +236,12 @@ app.get('/api/inflation/:country', (req, res) => {
     });
   }
 
-  const observations =
-    data.trend.map((value, index) => ({
+  const observations = data.trend.map(
+    (value, index) => ({
       date: months[index],
       value: value.toString()
-    }));
+    })
+  );
 
   res.json({
     observations,
@@ -305,15 +249,12 @@ app.get('/api/inflation/:country', (req, res) => {
   });
 });
 
-
 // ============================================================
 // EXCHANGE RATE API
 // ============================================================
 
 app.get('/api/exchange', async (req, res) => {
-
   try {
-
     if (!EXCHANGE_API_KEY) {
       return res.status(500).json({
         error:
@@ -331,7 +272,6 @@ app.get('/api/exchange', async (req, res) => {
     res.json(response.data);
 
   } catch (error) {
-
     console.error(
       'Exchange API error:',
       error.response?.data ||
@@ -345,15 +285,12 @@ app.get('/api/exchange', async (req, res) => {
   }
 });
 
-
 // ============================================================
 // NEWS API
 // ============================================================
 
 app.get('/api/news', async (req, res) => {
-
   try {
-
     const country =
       req.query.country || 'Kenya';
 
@@ -366,7 +303,6 @@ app.get('/api/news', async (req, res) => {
     });
 
   } catch (error) {
-
     console.error(
       'News API error:',
       error.message
@@ -379,15 +315,12 @@ app.get('/api/news', async (req, res) => {
   }
 });
 
-
 // ============================================================
 // AI ECONOMIC REPORT
 // ============================================================
 
 app.post('/api/report', async (req, res) => {
-
   try {
-
     const {
       inflation,
       exchangeKES,
@@ -473,7 +406,6 @@ Do not invent statistics that were not provided.
     });
 
   } catch (error) {
-
     console.error(
       'Claude API error:',
       error.response?.data ||
@@ -487,37 +419,43 @@ Do not invent statistics that were not provided.
   }
 });
 
+// ============================================================
+// REACT FRONTEND FALLBACK
+// ============================================================
+
+// IMPORTANT:
+// Do NOT use app.get('*') here.
+// Express 5 / path-to-regexp causes:
+// "Missing parameter name at index 1: *"
+//
+// Instead we use middleware after the API routes.
+
+app.use((req, res, next) => {
+  if (
+    req.method === 'GET' &&
+    !req.path.startsWith('/api/')
+  ) {
+    return res.sendFile(
+      path.join(
+        frontendPath,
+        'index.html'
+      )
+    );
+  }
+
+  next();
+});
 
 // ============================================================
-// HEALTH CHECK
+// 404 API HANDLER
 // ============================================================
 
-app.get('/api/health', (req, res) => {
-
-  res.json({
-    status: 'ok',
-    service: 'NexusEconomics API',
-    timestamp: new Date().toISOString()
+app.use((req, res) => {
+  res.status(404).json({
+    error: 'Endpoint not found',
+    path: req.originalUrl
   });
-
 });
-
-
-// ============================================================
-// SERVE REACT APPLICATION
-// ============================================================
-
-app.get('*', (req, res) => {
-
-  res.sendFile(
-    path.join(
-      frontendPath,
-      'index.html'
-    )
-  );
-
-});
-
 
 // ============================================================
 // START SERVER
@@ -527,10 +465,8 @@ app.listen(
   PORT,
   '0.0.0.0',
   () => {
-
     console.log(
       `NexusEconomics server running on port ${PORT}`
     );
-
   }
 );
