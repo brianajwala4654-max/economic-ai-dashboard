@@ -23,7 +23,8 @@ import {
   getEconomicIndicators,
 } from "./api";
 
-const BACKEND_URL = "https://nexus-economics.onrender.com";
+const BACKEND_URL =
+  "https://nexus-economics.onrender.com";
 
 const countries = {
   Kenya: {
@@ -31,21 +32,25 @@ const countries = {
     currency: "KES",
     currencyName: "Kenyan Shilling",
   },
+
   Uganda: {
     flag: "🇺🇬",
     currency: "UGX",
     currencyName: "Ugandan Shilling",
   },
+
   Tanzania: {
     flag: "🇹🇿",
     currency: "TZS",
     currencyName: "Tanzanian Shilling",
   },
+
   Rwanda: {
     flag: "🇷🇼",
     currency: "RWF",
     currencyName: "Rwandan Franc",
   },
+
   Ethiopia: {
     flag: "🇪🇹",
     currency: "ETB",
@@ -55,18 +60,56 @@ const countries = {
 
 const styles = {
   app: {
+    display: "flex",
     minHeight: "100vh",
-    width: "100%",
     fontFamily: "'Segoe UI', sans-serif",
     backgroundColor: "#0f172a",
+  },
+
+  sidebar: {
+    width: "250px",
+    backgroundColor: "#1e293b",
+    color: "white",
+    padding: "28px 18px",
+    display: "flex",
+    flexDirection: "column",
+    gap: "8px",
+    borderRight: "1px solid #334155",
+  },
+
+  logo: {
+    fontSize: "22px",
+    fontWeight: "800",
+    color: "#38bdf8",
+    marginBottom: "30px",
+  },
+
+  logoSub: {
+    display: "block",
+    fontSize: "11px",
+    color: "#64748b",
+    marginTop: "4px",
+  },
+
+  navItem: {
+    padding: "13px 15px",
+    borderRadius: "10px",
+    cursor: "pointer",
+    fontSize: "14px",
+    color: "#94a3b8",
+    display: "flex",
+    alignItems: "center",
+    gap: "10px",
+  },
+
+  navActive: {
+    backgroundColor: "#0ea5e9",
     color: "white",
   },
 
   main: {
-    width: "100%",
-    minHeight: "100vh",
+    flex: 1,
     padding: "38px",
-    boxSizing: "border-box",
     overflowY: "auto",
   },
 
@@ -96,7 +139,8 @@ const styles = {
 
   grid: {
     display: "grid",
-    gridTemplateColumns: "repeat(auto-fit, minmax(210px, 1fr))",
+    gridTemplateColumns:
+      "repeat(auto-fit,minmax(210px,1fr))",
     gap: "18px",
     marginTop: "26px",
     marginBottom: "25px",
@@ -107,7 +151,6 @@ const styles = {
     border: "1px solid #334155",
     borderRadius: "16px",
     padding: "22px",
-    minWidth: 0,
   },
 
   cardLabel: {
@@ -142,7 +185,6 @@ const styles = {
     borderRadius: "16px",
     padding: "25px",
     marginBottom: "22px",
-    minWidth: 0,
   },
 
   sectionTitle: {
@@ -195,7 +237,6 @@ const styles = {
     borderRadius: "9px",
     padding: "12px",
     marginTop: "8px",
-    boxSizing: "border-box",
   },
 
   report: {
@@ -237,9 +278,7 @@ function latestValue(data) {
 }
 
 function prepareSeries(data) {
-  if (!Array.isArray(data)) {
-    return [];
-  }
+  if (!Array.isArray(data)) return [];
 
   return data.map((item) => ({
     year: item.year || item.date,
@@ -248,26 +287,42 @@ function prepareSeries(data) {
 }
 
 export default function App() {
-  const [activeNav, setActiveNav] = useState("Dashboard");
+  const [activeNav, setActiveNav] =
+    useState("Dashboard");
 
-  const [country, setCountry] = useState("Kenya");
+  const [country, setCountry] =
+    useState("Kenya");
 
-  const [inflationData, setInflationData] = useState([]);
+  const [inflationData, setInflationData] =
+    useState([]);
 
-  const [economicData, setEconomicData] = useState({
-    gdpGrowth: [],
-    unemployment: [],
-    inflation: [],
-  });
+  const [economicData, setEconomicData] =
+    useState({
+      gdpGrowth: [],
+      unemployment: [],
+      inflation: [],
+    });
 
-  const [exchangeRate, setExchangeRate] = useState(null);
-  const [news, setNews] = useState([]);
+  const [exchangeRate, setExchangeRate] =
+    useState(null);
 
-  const [loading, setLoading] = useState(true);
-  const [reportLoading, setReportLoading] = useState(false);
-  const [report, setReport] = useState("");
-  const [autoRefresh, setAutoRefresh] = useState(false);
-  const [lastUpdated, setLastUpdated] = useState(null);
+  const [news, setNews] =
+    useState([]);
+
+  const [loading, setLoading] =
+    useState(true);
+
+  const [reportLoading, setReportLoading] =
+    useState(false);
+
+  const [report, setReport] =
+    useState("");
+
+  const [autoRefresh, setAutoRefresh] =
+    useState(false);
+
+  const [lastUpdated, setLastUpdated] =
+    useState(null);
 
   const selected = countries[country];
 
@@ -276,9 +331,7 @@ export default function App() {
   }, [country]);
 
   useEffect(() => {
-    if (!autoRefresh) {
-      return;
-    }
+    if (!autoRefresh) return;
 
     const interval = setInterval(
       loadData,
@@ -305,13 +358,17 @@ export default function App() {
       ]);
 
       setInflationData(
-        Array.isArray(inflation) ? inflation : []
+        Array.isArray(inflation)
+          ? inflation
+          : []
       );
 
       setExchangeRate(exchange || {});
 
       setNews(
-        Array.isArray(newsData) ? newsData : []
+        Array.isArray(newsData)
+          ? newsData
+          : []
       );
 
       setEconomicData(
@@ -337,22 +394,24 @@ export default function App() {
     economicData.gdpGrowth
   );
 
-  const unemploymentSeries = prepareSeries(
-    economicData.unemployment
-  );
+  const unemploymentSeries =
+    prepareSeries(
+      economicData.unemployment
+    );
 
-  const worldBankInflation = prepareSeries(
-    economicData.inflation
-  );
+  const worldBankInflation =
+    prepareSeries(
+      economicData.inflation
+    );
 
-  const backendInflation = inflationData.map(
-    (item) => ({
+  const backendInflation =
+    inflationData.map((item) => ({
       year: item.date,
       value: Number(item.value),
-    })
-  );
+    }));
 
-  const currentGDP = latestValue(gdpSeries);
+  const currentGDP =
+    latestValue(gdpSeries);
 
   const currentUnemployment =
     latestValue(unemploymentSeries);
@@ -363,19 +422,6 @@ export default function App() {
 
   const currentFX =
     exchangeRate?.[selected.currency];
-
-  function handleNavigation(label) {
-    setActiveNav(label);
-
-    if (label !== "AI Reports") {
-      setReport("");
-    }
-
-    window.scrollTo({
-      top: 0,
-      behavior: "smooth",
-    });
-  }
 
   function downloadPDF() {
     const doc = new jsPDF();
@@ -521,25 +567,29 @@ export default function App() {
             },
             body: JSON.stringify({
               country,
+
               inflation:
                 formatValue(
                   currentInflation
                 ),
+
               gdpGrowth:
                 formatValue(
                   currentGDP
                 ),
+
               unemployment:
                 formatValue(
                   currentUnemployment
                 ),
+
               exchangeRate:
                 formatValue(
                   currentFX,
                   selected.currency ===
                     "UGX" ||
-                  selected.currency ===
-                    "TZS"
+                    selected.currency ===
+                      "TZS"
                     ? 0
                     : 2
                 ),
@@ -695,7 +745,8 @@ export default function App() {
 
               <div style={styles.card}>
                 <div style={styles.cardLabel}>
-                  USD / {selected.currency}
+                  USD /{" "}
+                  {selected.currency}
                 </div>
 
                 <div style={styles.cardValue}>
@@ -703,8 +754,8 @@ export default function App() {
                     currentFX,
                     selected.currency ===
                       "UGX" ||
-                    selected.currency ===
-                      "TZS"
+                      selected.currency ===
+                        "TZS"
                       ? 0
                       : 2
                   )}
@@ -735,7 +786,9 @@ export default function App() {
 
             <div style={styles.twoCol}>
               <div style={styles.section}>
-                <div style={styles.sectionTitle}>
+                <div
+                  style={styles.sectionTitle}
+                >
                   📈 GDP Growth Trend
                 </div>
 
@@ -780,7 +833,9 @@ export default function App() {
               </div>
 
               <div style={styles.section}>
-                <div style={styles.sectionTitle}>
+                <div
+                  style={styles.sectionTitle}
+                >
                   📊 Inflation Trend
                 </div>
 
@@ -828,7 +883,9 @@ export default function App() {
             </div>
 
             <div style={styles.section}>
-              <div style={styles.sectionTitle}>
+              <div
+                style={styles.sectionTitle}
+              >
                 👷 Unemployment Trend
               </div>
 
@@ -878,7 +935,9 @@ export default function App() {
             </div>
 
             <div style={styles.section}>
-              <div style={styles.sectionTitle}>
+              <div
+                style={styles.sectionTitle}
+              >
                 📰 Latest {country} Economic News
               </div>
 
@@ -952,8 +1011,8 @@ export default function App() {
         </h1>
 
         <p style={styles.subtitle}>
-          Deeper analysis of {country}'s
-          economic indicators
+          Deeper analysis of{" "}
+          {country}'s economic indicators
         </p>
 
         <div style={styles.grid}>
@@ -963,7 +1022,10 @@ export default function App() {
             </div>
 
             <div style={styles.cardValue}>
-              {formatValue(currentGDP)}%
+              {formatValue(
+                currentGDP
+              )}
+              %
             </div>
           </div>
 
@@ -1004,7 +1066,9 @@ export default function App() {
               width="100%"
               height="100%"
             >
-              <LineChart data={gdpSeries}>
+              <LineChart
+                data={gdpSeries}
+              >
                 <CartesianGrid
                   strokeDasharray="3 3"
                   stroke="#334155"
@@ -1148,7 +1212,9 @@ export default function App() {
                   style={styles.cardValue}
                 >
                   {formatValue(
-                    exchangeRate?.[code],
+                    exchangeRate?.[
+                      code
+                    ],
                     code === "UGX" ||
                       code === "TZS"
                       ? 0
@@ -1167,7 +1233,9 @@ export default function App() {
         </div>
 
         <div style={styles.section}>
-          <div style={styles.sectionTitle}>
+          <div
+            style={styles.sectionTitle}
+          >
             🌍 Currency Comparison
           </div>
 
@@ -1228,7 +1296,9 @@ export default function App() {
         </p>
 
         <div style={styles.section}>
-          <div style={styles.sectionTitle}>
+          <div
+            style={styles.sectionTitle}
+          >
             🤖 Generate Economic Report
           </div>
 
@@ -1246,7 +1316,9 @@ export default function App() {
           <select
             value={country}
             onChange={(e) => {
-              setCountry(e.target.value);
+              setCountry(
+                e.target.value
+              );
               setReport("");
             }}
             style={styles.select}
@@ -1269,18 +1341,14 @@ export default function App() {
               marginTop: "20px",
               display: "flex",
               gap: "10px",
-              flexWrap: "wrap",
             }}
           >
             <button
               onClick={generateReport}
-              disabled={reportLoading}
-              style={{
-                ...styles.button,
-                opacity: reportLoading
-                  ? 0.7
-                  : 1,
-              }}
+              disabled={
+                reportLoading
+              }
+              style={styles.button}
             >
               {reportLoading
                 ? "⏳ Generating..."
@@ -1321,14 +1389,18 @@ export default function App() {
         </p>
 
         <div style={styles.section}>
-          <div style={styles.sectionTitle}>
+          <div
+            style={styles.sectionTitle}
+          >
             🌍 Default Country
           </div>
 
           <select
             value={country}
             onChange={(e) =>
-              setCountry(e.target.value)
+              setCountry(
+                e.target.value
+              )
             }
             style={styles.select}
           >
@@ -1347,7 +1419,9 @@ export default function App() {
         </div>
 
         <div style={styles.section}>
-          <div style={styles.sectionTitle}>
+          <div
+            style={styles.sectionTitle}
+          >
             🔄 Automatic Data Refresh
           </div>
 
@@ -1389,7 +1463,9 @@ export default function App() {
         </div>
 
         <div style={styles.section}>
-          <div style={styles.sectionTitle}>
+          <div
+            style={styles.sectionTitle}
+          >
             ℹ️ About NexusEconomics
           </div>
 
@@ -1422,30 +1498,42 @@ export default function App() {
   }
 
   function renderPage() {
-    if (activeNav === "Analytics") {
+    if (activeNav === "Analytics")
       return <Analytics />;
-    }
 
-    if (activeNav === "Global Markets") {
+    if (
+      activeNav ===
+      "Global Markets"
+    )
       return <GlobalMarkets />;
-    }
 
-    if (activeNav === "AI Reports") {
+    if (
+      activeNav === "AI Reports"
+    )
       return <AIReports />;
-    }
 
-    if (activeNav === "Settings") {
+    if (
+      activeNav === "Settings"
+    )
       return <Settings />;
-    }
 
     return <Dashboard />;
   }
+
+  const navItems = [
+    ["📊", "Dashboard"],
+    ["📈", "Analytics"],
+    ["🌍", "Global Markets"],
+    ["🤖", "AI Reports"],
+    ["⚙️", "Settings"],
+  ];
 
   return (
     <>
       <Helmet>
         <title>
-          NexusEconomics — Economic Intelligence
+          NexusEconomics —
+          Economic Intelligence
         </title>
 
         <meta
@@ -1454,55 +1542,71 @@ export default function App() {
         />
       </Helmet>
 
-      <style>
-        {`
-          * {
-            box-sizing: border-box;
-          }
-
-          html,
-          body,
-          #root {
-            margin: 0;
-            padding: 0;
-            width: 100%;
-            min-height: 100%;
-          }
-
-          body {
-            background: #0f172a;
-            overflow-x: hidden;
-          }
-
-          button,
-          select {
-            font-family: inherit;
-          }
-
-          @media (max-width: 768px) {
-            .nexus-main-content {
-              padding: 24px 16px !important;
-            }
-
-            .nexus-two-col {
-              grid-template-columns: 1fr !important;
-            }
-
-            .nexus-title {
-              font-size: 28px !important;
-            }
-          }
-        `}
-      </style>
-
       <div style={styles.app}>
-        <main
-          className="nexus-main-content"
-          style={styles.main}
-        >
-          <div>
-            {renderPage()}
+        <aside style={styles.sidebar}>
+          <div style={styles.logo}>
+            NexusEconomics
+
+            <span
+              style={styles.logoSub}
+            >
+              Economic Intelligence
+              Platform
+            </span>
           </div>
+
+          {navItems.map(
+            ([icon, label]) => (
+              <div
+                key={label}
+                onClick={() =>
+                  setActiveNav(label)
+                }
+                style={{
+                  ...styles.navItem,
+                  ...(activeNav ===
+                  label
+                    ? styles.navActive
+                    : {}),
+                }}
+              >
+                {icon} {label}
+              </div>
+            )
+          )}
+
+          <div
+            style={{
+              marginTop: "auto",
+              padding: "15px",
+              backgroundColor:
+                "#0f172a",
+              borderRadius: "12px",
+            }}
+          >
+            <div
+              style={{
+                color: "#64748b",
+                fontSize: "11px",
+              }}
+            >
+              SYSTEM STATUS
+            </div>
+
+            <div
+              style={{
+                color: "#22c55e",
+                fontSize: "13px",
+                marginTop: "5px",
+              }}
+            >
+              ● Operational
+            </div>
+          </div>
+        </aside>
+
+        <main style={styles.main}>
+          {renderPage()}
 
           <div style={styles.footer}>
             NexusEconomics v3.0 —
