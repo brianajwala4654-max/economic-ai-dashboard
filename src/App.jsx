@@ -23,8 +23,7 @@ import {
   getEconomicIndicators,
 } from "./api";
 
-const BACKEND_URL =
-  "https://nexus-economics.onrender.com";
+const BACKEND_URL = "https://nexus-economics.onrender.com";
 
 const countries = {
   Kenya: {
@@ -61,13 +60,18 @@ const countries = {
 const styles = {
   app: {
     display: "flex",
+    width: "100%",
     minHeight: "100vh",
     fontFamily: "'Segoe UI', sans-serif",
     backgroundColor: "#0f172a",
+    overflowX: "hidden",
+    boxSizing: "border-box",
   },
 
   sidebar: {
     width: "250px",
+    minWidth: "250px",
+    flexShrink: 0,
     backgroundColor: "#1e293b",
     color: "white",
     padding: "28px 18px",
@@ -75,6 +79,7 @@ const styles = {
     flexDirection: "column",
     gap: "8px",
     borderRight: "1px solid #334155",
+    boxSizing: "border-box",
   },
 
   logo: {
@@ -82,6 +87,7 @@ const styles = {
     fontWeight: "800",
     color: "#38bdf8",
     marginBottom: "30px",
+    whiteSpace: "nowrap",
   },
 
   logoSub: {
@@ -89,6 +95,7 @@ const styles = {
     fontSize: "11px",
     color: "#64748b",
     marginTop: "4px",
+    fontWeight: "500",
   },
 
   navItem: {
@@ -100,6 +107,9 @@ const styles = {
     display: "flex",
     alignItems: "center",
     gap: "10px",
+    minHeight: "46px",
+    boxSizing: "border-box",
+    userSelect: "none",
   },
 
   navActive: {
@@ -109,8 +119,12 @@ const styles = {
 
   main: {
     flex: 1,
+    minWidth: 0,
+    width: "calc(100% - 250px)",
     padding: "38px",
     overflowY: "auto",
+    overflowX: "hidden",
+    boxSizing: "border-box",
   },
 
   title: {
@@ -118,12 +132,14 @@ const styles = {
     fontWeight: "700",
     color: "white",
     margin: "0 0 6px",
+    lineHeight: "1.2",
   },
 
   subtitle: {
     color: "#64748b",
     fontSize: "14px",
     margin: 0,
+    lineHeight: "1.5",
   },
 
   badge: {
@@ -144,6 +160,7 @@ const styles = {
     gap: "18px",
     marginTop: "26px",
     marginBottom: "25px",
+    minWidth: 0,
   },
 
   card: {
@@ -151,6 +168,8 @@ const styles = {
     border: "1px solid #334155",
     borderRadius: "16px",
     padding: "22px",
+    minWidth: 0,
+    boxSizing: "border-box",
   },
 
   cardLabel: {
@@ -165,6 +184,7 @@ const styles = {
     fontSize: "29px",
     fontWeight: "700",
     color: "white",
+    overflowWrap: "break-word",
   },
 
   cardSub: {
@@ -185,6 +205,9 @@ const styles = {
     borderRadius: "16px",
     padding: "25px",
     marginBottom: "22px",
+    minWidth: 0,
+    boxSizing: "border-box",
+    overflow: "hidden",
   },
 
   sectionTitle: {
@@ -198,6 +221,7 @@ const styles = {
     display: "grid",
     gridTemplateColumns: "1fr 1fr",
     gap: "22px",
+    minWidth: 0,
   },
 
   button: {
@@ -208,6 +232,7 @@ const styles = {
     borderRadius: "9px",
     cursor: "pointer",
     fontWeight: "600",
+    boxSizing: "border-box",
   },
 
   greenButton: {
@@ -218,6 +243,7 @@ const styles = {
     borderRadius: "9px",
     cursor: "pointer",
     fontWeight: "600",
+    boxSizing: "border-box",
   },
 
   darkButton: {
@@ -227,16 +253,19 @@ const styles = {
     padding: "11px 18px",
     borderRadius: "9px",
     cursor: "pointer",
+    boxSizing: "border-box",
   },
 
   select: {
     width: "100%",
+    maxWidth: "100%",
     backgroundColor: "#0f172a",
     color: "white",
     border: "1px solid #334155",
     borderRadius: "9px",
     padding: "12px",
     marginTop: "8px",
+    boxSizing: "border-box",
   },
 
   report: {
@@ -247,6 +276,8 @@ const styles = {
     lineHeight: "1.8",
     marginTop: "20px",
     whiteSpace: "pre-line",
+    overflowWrap: "break-word",
+    wordBreak: "break-word",
   },
 
   footer: {
@@ -254,6 +285,7 @@ const styles = {
     color: "#475569",
     fontSize: "12px",
     padding: "20px",
+    lineHeight: "1.6",
   },
 };
 
@@ -324,7 +356,33 @@ export default function App() {
   const [lastUpdated, setLastUpdated] =
     useState(null);
 
+  const [isMobile, setIsMobile] =
+    useState(
+      () =>
+        typeof window !== "undefined" &&
+        window.innerWidth <= 768
+    );
+
   const selected = countries[country];
+
+  useEffect(() => {
+    function handleResize() {
+      setIsMobile(window.innerWidth <= 768);
+    }
+
+    window.addEventListener(
+      "resize",
+      handleResize
+    );
+
+    handleResize();
+
+    return () =>
+      window.removeEventListener(
+        "resize",
+        handleResize
+      );
+  }, []);
 
   useEffect(() => {
     loadData();
@@ -674,7 +732,14 @@ export default function App() {
           </p>
         ) : (
           <>
-            <div style={styles.grid}>
+            <div
+              style={{
+                ...styles.grid,
+                gridTemplateColumns: isMobile
+                  ? "1fr"
+                  : "repeat(auto-fit,minmax(210px,1fr))",
+              }}
+            >
               <div style={styles.card}>
                 <div style={styles.cardLabel}>
                   Inflation
@@ -784,7 +849,14 @@ export default function App() {
               </p>
             )}
 
-            <div style={styles.twoCol}>
+            <div
+              style={{
+                ...styles.twoCol,
+                gridTemplateColumns: isMobile
+                  ? "1fr"
+                  : "1fr 1fr",
+              }}
+            >
               <div style={styles.section}>
                 <div
                   style={styles.sectionTitle}
@@ -794,7 +866,10 @@ export default function App() {
 
                 <div
                   style={{
-                    height: "280px",
+                    height: isMobile
+                      ? "240px"
+                      : "280px",
+                    minWidth: 0,
                   }}
                 >
                   <ResponsiveContainer
@@ -841,7 +916,10 @@ export default function App() {
 
                 <div
                   style={{
-                    height: "280px",
+                    height: isMobile
+                      ? "240px"
+                      : "280px",
+                    minWidth: 0,
                   }}
                 >
                   <ResponsiveContainer
@@ -891,7 +969,10 @@ export default function App() {
 
               <div
                 style={{
-                  height: "300px",
+                  height: isMobile
+                    ? "250px"
+                    : "300px",
+                  minWidth: 0,
                 }}
               >
                 <ResponsiveContainer
@@ -951,6 +1032,7 @@ export default function App() {
                           "14px 0",
                         borderBottom:
                           "1px solid #334155",
+                        minWidth: 0,
                       }}
                     >
                       <a
@@ -966,6 +1048,8 @@ export default function App() {
                             "600",
                           textDecoration:
                             "none",
+                          overflowWrap:
+                            "break-word",
                         }}
                       >
                         {article.title}
@@ -977,6 +1061,10 @@ export default function App() {
                             "#64748b",
                           fontSize:
                             "13px",
+                          overflowWrap:
+                            "break-word",
+                          wordBreak:
+                            "break-word",
                         }}
                       >
                         {
@@ -1015,7 +1103,14 @@ export default function App() {
           {country}'s economic indicators
         </p>
 
-        <div style={styles.grid}>
+        <div
+          style={{
+            ...styles.grid,
+            gridTemplateColumns: isMobile
+              ? "1fr"
+              : "repeat(auto-fit,minmax(210px,1fr))",
+          }}
+        >
           <div style={styles.card}>
             <div style={styles.cardLabel}>
               GDP Growth
@@ -1061,7 +1156,14 @@ export default function App() {
             📈 GDP Growth Analysis
           </div>
 
-          <div style={{ height: "350px" }}>
+          <div
+            style={{
+              height: isMobile
+                ? "260px"
+                : "350px",
+              minWidth: 0,
+            }}
+          >
             <ResponsiveContainer
               width="100%"
               height="100%"
@@ -1102,7 +1204,14 @@ export default function App() {
             📊 Inflation Analysis
           </div>
 
-          <div style={{ height: "350px" }}>
+          <div
+            style={{
+              height: isMobile
+                ? "260px"
+                : "350px",
+              minWidth: 0,
+            }}
+          >
             <ResponsiveContainer
               width="100%"
               height="100%"
@@ -1167,6 +1276,10 @@ export default function App() {
           style={{
             marginTop: "20px",
             marginBottom: "20px",
+            display: "flex",
+            gap: "10px",
+            flexWrap: "wrap",
+            alignItems: "center",
           }}
         >
           <span style={styles.badge}>
@@ -1175,16 +1288,20 @@ export default function App() {
 
           <button
             onClick={loadData}
-            style={{
-              ...styles.button,
-              marginLeft: "12px",
-            }}
+            style={styles.button}
           >
             🔄 Refresh Markets
           </button>
         </div>
 
-        <div style={styles.grid}>
+        <div
+          style={{
+            ...styles.grid,
+            gridTemplateColumns: isMobile
+              ? "1fr"
+              : "repeat(auto-fit,minmax(210px,1fr))",
+          }}
+        >
           {currencies.map(
             ([code, flag, name]) => (
               <div
@@ -1239,7 +1356,14 @@ export default function App() {
             🌍 Currency Comparison
           </div>
 
-          <div style={{ height: "350px" }}>
+          <div
+            style={{
+              height: isMobile
+                ? "280px"
+                : "350px",
+              minWidth: 0,
+            }}
+          >
             <ResponsiveContainer
               width="100%"
               height="100%"
@@ -1341,6 +1465,7 @@ export default function App() {
               marginTop: "20px",
               display: "flex",
               gap: "10px",
+              flexWrap: "wrap",
             }}
           >
             <button
@@ -1434,32 +1559,39 @@ export default function App() {
             five minutes.
           </p>
 
-          <button
-            onClick={() =>
-              setAutoRefresh(
-                !autoRefresh
-              )
-            }
-            style={
-              autoRefresh
-                ? styles.greenButton
-                : styles.button
-            }
-          >
-            {autoRefresh
-              ? "✓ Auto Refresh Enabled"
-              : "Enable Auto Refresh"}
-          </button>
-
-          <button
-            onClick={loadData}
+          <div
             style={{
-              ...styles.darkButton,
-              marginLeft: "10px",
+              display: "flex",
+              gap: "10px",
+              flexWrap: "wrap",
             }}
           >
-            🔄 Refresh Now
-          </button>
+            <button
+              onClick={() =>
+                setAutoRefresh(
+                  !autoRefresh
+                )
+              }
+              style={
+                autoRefresh
+                  ? styles.greenButton
+                  : styles.button
+              }
+            >
+              {autoRefresh
+                ? "✓ Auto Refresh Enabled"
+                : "Enable Auto Refresh"}
+            </button>
+
+            <button
+              onClick={loadData}
+              style={
+                styles.darkButton
+              }
+            >
+              🔄 Refresh Now
+            </button>
+          </div>
         </div>
 
         <div style={styles.section}>
@@ -1498,24 +1630,28 @@ export default function App() {
   }
 
   function renderPage() {
-    if (activeNav === "Analytics")
+    if (activeNav === "Analytics") {
       return <Analytics />;
+    }
 
     if (
       activeNav ===
       "Global Markets"
-    )
+    ) {
       return <GlobalMarkets />;
+    }
 
     if (
       activeNav === "AI Reports"
-    )
+    ) {
       return <AIReports />;
+    }
 
     if (
       activeNav === "Settings"
-    )
+    ) {
       return <Settings />;
+    }
 
     return <Dashboard />;
   }
@@ -1527,6 +1663,25 @@ export default function App() {
     ["🤖", "AI Reports"],
     ["⚙️", "Settings"],
   ];
+
+  const sidebarStyle = isMobile
+    ? {
+        ...styles.sidebar,
+        width: "72px",
+        minWidth: "72px",
+        padding: "20px 10px",
+        alignItems: "center",
+        gap: "8px",
+      }
+    : styles.sidebar;
+
+  const mainStyle = isMobile
+    ? {
+        ...styles.main,
+        width: "calc(100% - 72px)",
+        padding: "22px 14px",
+      }
+    : styles.main;
 
   return (
     <>
@@ -1543,16 +1698,35 @@ export default function App() {
       </Helmet>
 
       <div style={styles.app}>
-        <aside style={styles.sidebar}>
-          <div style={styles.logo}>
-            NexusEconomics
+        <aside style={sidebarStyle}>
+          <div
+            style={{
+              ...styles.logo,
+              fontSize: isMobile
+                ? "22px"
+                : "22px",
+              marginBottom: isMobile
+                ? "20px"
+                : "30px",
+              textAlign: "center",
+              width: "100%",
+            }}
+            title="NexusEconomics"
+          >
+            {isMobile
+              ? "N"
+              : "NexusEconomics"}
 
-            <span
-              style={styles.logoSub}
-            >
-              Economic Intelligence
-              Platform
-            </span>
+            {!isMobile && (
+              <span
+                style={
+                  styles.logoSub
+                }
+              >
+                Economic Intelligence
+                Platform
+              </span>
+            )}
           </div>
 
           {navItems.map(
@@ -1562,50 +1736,86 @@ export default function App() {
                 onClick={() =>
                   setActiveNav(label)
                 }
+                title={label}
                 style={{
                   ...styles.navItem,
                   ...(activeNav ===
                   label
                     ? styles.navActive
                     : {}),
+                  ...(isMobile
+                    ? {
+                        width: "52px",
+                        height: "52px",
+                        padding: "0",
+                        justifyContent:
+                          "center",
+                        fontSize: "21px",
+                      }
+                    : {}),
                 }}
               >
-                {icon} {label}
+                <span>{icon}</span>
+
+                {!isMobile && (
+                  <span>
+                    {label}
+                  </span>
+                )}
               </div>
             )
           )}
 
-          <div
-            style={{
-              marginTop: "auto",
-              padding: "15px",
-              backgroundColor:
-                "#0f172a",
-              borderRadius: "12px",
-            }}
-          >
+          {!isMobile && (
             <div
               style={{
-                color: "#64748b",
-                fontSize: "11px",
+                marginTop: "auto",
+                padding: "15px",
+                backgroundColor:
+                  "#0f172a",
+                borderRadius: "12px",
               }}
             >
-              SYSTEM STATUS
-            </div>
+              <div
+                style={{
+                  color: "#64748b",
+                  fontSize: "11px",
+                }}
+              >
+                SYSTEM STATUS
+              </div>
 
-            <div
-              style={{
-                color: "#22c55e",
-                fontSize: "13px",
-                marginTop: "5px",
-              }}
-            >
-              ● Operational
+              <div
+                style={{
+                  color: "#22c55e",
+                  fontSize: "13px",
+                  marginTop: "5px",
+                }}
+              >
+                ● Operational
+              </div>
             </div>
-          </div>
+          )}
+
+          {isMobile && (
+            <div
+              title="System Operational"
+              style={{
+                marginTop: "auto",
+                width: "12px",
+                height: "12px",
+                borderRadius: "50%",
+                backgroundColor:
+                  "#22c55e",
+                boxShadow:
+                  "0 0 10px rgba(34,197,94,0.6)",
+                marginBottom: "10px",
+              }}
+            />
+          )}
         </aside>
 
-        <main style={styles.main}>
+        <main style={mainStyle}>
           {renderPage()}
 
           <div style={styles.footer}>
