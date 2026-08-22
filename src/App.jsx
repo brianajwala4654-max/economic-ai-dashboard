@@ -155,8 +155,7 @@ const styles = {
 
   grid: {
     display: "grid",
-    gridTemplateColumns:
-      "repeat(auto-fit,minmax(210px,1fr))",
+    gridTemplateColumns: "repeat(auto-fit,minmax(210px,1fr))",
     gap: "18px",
     marginTop: "26px",
     marginBottom: "25px",
@@ -319,61 +318,54 @@ function prepareSeries(data) {
 }
 
 export default function App() {
-  const [activeNav, setActiveNav] =
-    useState("Dashboard");
+  const [activeNav, setActiveNav] = useState("Dashboard");
 
-  const [country, setCountry] =
-    useState("Kenya");
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  const [inflationData, setInflationData] =
-    useState([]);
+  const [country, setCountry] = useState("Kenya");
 
-  const [economicData, setEconomicData] =
-    useState({
-      gdpGrowth: [],
-      unemployment: [],
-      inflation: [],
-    });
+  const [inflationData, setInflationData] = useState([]);
 
-  const [exchangeRate, setExchangeRate] =
-    useState(null);
+  const [economicData, setEconomicData] = useState({
+    gdpGrowth: [],
+    unemployment: [],
+    inflation: [],
+  });
 
-  const [news, setNews] =
-    useState([]);
+  const [exchangeRate, setExchangeRate] = useState(null);
 
-  const [loading, setLoading] =
-    useState(true);
+  const [news, setNews] = useState([]);
 
-  const [reportLoading, setReportLoading] =
-    useState(false);
+  const [loading, setLoading] = useState(true);
 
-  const [report, setReport] =
-    useState("");
+  const [reportLoading, setReportLoading] = useState(false);
 
-  const [autoRefresh, setAutoRefresh] =
-    useState(false);
+  const [report, setReport] = useState("");
 
-  const [lastUpdated, setLastUpdated] =
-    useState(null);
+  const [autoRefresh, setAutoRefresh] = useState(false);
 
-  const [isMobile, setIsMobile] =
-    useState(
-      () =>
-        typeof window !== "undefined" &&
-        window.innerWidth <= 768
-    );
+  const [lastUpdated, setLastUpdated] = useState(null);
+
+  const [isMobile, setIsMobile] = useState(
+    () =>
+      typeof window !== "undefined" &&
+      window.innerWidth <= 768
+  );
 
   const selected = countries[country];
 
   useEffect(() => {
     function handleResize() {
-      setIsMobile(window.innerWidth <= 768);
+      const mobile = window.innerWidth <= 768;
+
+      setIsMobile(mobile);
+
+      if (!mobile) {
+        setMobileMenuOpen(false);
+      }
     }
 
-    window.addEventListener(
-      "resize",
-      handleResize
-    );
+    window.addEventListener("resize", handleResize);
 
     handleResize();
 
@@ -1667,19 +1659,30 @@ export default function App() {
   const sidebarStyle = isMobile
     ? {
         ...styles.sidebar,
-        width: "72px",
-        minWidth: "72px",
-        padding: "20px 10px",
-        alignItems: "center",
-        gap: "8px",
+        position: "fixed",
+        top: 0,
+        left: 0,
+        bottom: 0,
+        width: "270px",
+        minWidth: "270px",
+        zIndex: 1000,
+        padding: "28px 18px",
+        transform: mobileMenuOpen
+          ? "translateX(0)"
+          : "translateX(-100%)",
+        transition:
+          "transform 0.3s ease",
+        boxShadow: mobileMenuOpen
+          ? "8px 0 30px rgba(0,0,0,0.35)"
+          : "none",
       }
     : styles.sidebar;
 
   const mainStyle = isMobile
     ? {
         ...styles.main,
-        width: "calc(100% - 72px)",
-        padding: "22px 14px",
+        width: "100%",
+        padding: "82px 14px 22px",
       }
     : styles.main;
 
@@ -1697,124 +1700,177 @@ export default function App() {
         />
       </Helmet>
 
+      {/* MOBILE TOP BAR */}
+      {isMobile && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            height: "64px",
+            backgroundColor: "#1e293b",
+            borderBottom:
+              "1px solid #334155",
+            display: "flex",
+            alignItems: "center",
+            padding: "0 16px",
+            zIndex: 900,
+            boxSizing: "border-box",
+          }}
+        >
+          <button
+            onClick={() =>
+              setMobileMenuOpen(
+                !mobileMenuOpen
+              )
+            }
+            style={{
+              background:
+                "transparent",
+              border: "none",
+              color: "white",
+              fontSize: "28px",
+              cursor: "pointer",
+              padding: "4px 8px",
+              marginRight: "12px",
+              lineHeight: 1,
+            }}
+            aria-label={
+              mobileMenuOpen
+                ? "Close navigation menu"
+                : "Open navigation menu"
+            }
+          >
+            {mobileMenuOpen
+              ? "✕"
+              : "☰"}
+          </button>
+
+          <div
+            style={{
+              color: "#38bdf8",
+              fontSize: "20px",
+              fontWeight: "800",
+            }}
+          >
+            NexusEconomics
+          </div>
+        </div>
+      )}
+
+      {/* MOBILE DARK OVERLAY */}
+      {isMobile && mobileMenuOpen && (
+        <div
+          onClick={() =>
+            setMobileMenuOpen(false)
+          }
+          style={{
+            position: "fixed",
+            inset: 0,
+            backgroundColor:
+              "rgba(0,0,0,0.55)",
+            zIndex: 950,
+          }}
+        />
+      )}
+
       <div style={styles.app}>
+        {/* SIDEBAR / MOBILE DRAWER */}
         <aside style={sidebarStyle}>
           <div
             style={{
               ...styles.logo,
-              fontSize: isMobile
-                ? "22px"
-                : "22px",
-              marginBottom: isMobile
-                ? "20px"
-                : "30px",
-              textAlign: "center",
+              marginBottom: "30px",
+              textAlign: isMobile
+                ? "left"
+                : "left",
               width: "100%",
             }}
-            title="NexusEconomics"
           >
-            {isMobile
-              ? "N"
-              : "NexusEconomics"}
+            NexusEconomics
 
-            {!isMobile && (
-              <span
-                style={
-                  styles.logoSub
-                }
-              >
-                Economic Intelligence
-                Platform
-              </span>
-            )}
+            <span
+              style={
+                styles.logoSub
+              }
+            >
+              Economic Intelligence
+              Platform
+            </span>
           </div>
 
           {navItems.map(
             ([icon, label]) => (
               <div
                 key={label}
-                onClick={() =>
-                  setActiveNav(label)
-                }
+                onClick={() => {
+                  setActiveNav(label);
+
+                  if (isMobile) {
+                    setMobileMenuOpen(
+                      false
+                    );
+                  }
+                }}
                 title={label}
                 style={{
                   ...styles.navItem,
+
                   ...(activeNav ===
                   label
                     ? styles.navActive
                     : {}),
-                  ...(isMobile
-                    ? {
-                        width: "52px",
-                        height: "52px",
-                        padding: "0",
-                        justifyContent:
-                          "center",
-                        fontSize: "21px",
-                      }
-                    : {}),
                 }}
               >
-                <span>{icon}</span>
+                <span
+                  style={{
+                    fontSize: "20px",
+                    width: "26px",
+                    textAlign: "center",
+                  }}
+                >
+                  {icon}
+                </span>
 
-                {!isMobile && (
-                  <span>
-                    {label}
-                  </span>
-                )}
+                <span>
+                  {label}
+                </span>
               </div>
             )
           )}
 
-          {!isMobile && (
+          <div
+            style={{
+              marginTop: "auto",
+              padding: "15px",
+              backgroundColor:
+                "#0f172a",
+              borderRadius: "12px",
+            }}
+          >
             <div
               style={{
-                marginTop: "auto",
-                padding: "15px",
-                backgroundColor:
-                  "#0f172a",
-                borderRadius: "12px",
+                color: "#64748b",
+                fontSize: "11px",
               }}
             >
-              <div
-                style={{
-                  color: "#64748b",
-                  fontSize: "11px",
-                }}
-              >
-                SYSTEM STATUS
-              </div>
-
-              <div
-                style={{
-                  color: "#22c55e",
-                  fontSize: "13px",
-                  marginTop: "5px",
-                }}
-              >
-                ● Operational
-              </div>
+              SYSTEM STATUS
             </div>
-          )}
 
-          {isMobile && (
             <div
-              title="System Operational"
               style={{
-                marginTop: "auto",
-                width: "12px",
-                height: "12px",
-                borderRadius: "50%",
-                backgroundColor:
-                  "#22c55e",
-                boxShadow:
-                  "0 0 10px rgba(34,197,94,0.6)",
-                marginBottom: "10px",
+                color: "#22c55e",
+                fontSize: "13px",
+                marginTop: "5px",
               }}
-            />
-          )}
+            >
+              ● Operational
+            </div>
+          </div>
         </aside>
 
+        {/* MAIN CONTENT */}
         <main style={mainStyle}>
           {renderPage()}
 
